@@ -81,9 +81,9 @@ function renderEstimatesList() {
             <div class="estimate-card-total">
                 Итого: ${formatCurrency(estimate.total || 0)}
             </div>
-            <div class="estimate-card-actions" onclick="event.stopPropagation()">
-                <button class="btn btn-primary btn-small" onclick="editEstimate(${index})">✏️ Редактировать</button>
-                <button class="btn btn-danger btn-small" onclick="deleteEstimate(${index})">🗑️ Удалить</button>
+            <div class="estimate-card-actions">
+                <button class="btn btn-primary btn-small" data-action="edit" data-index="${index}">✏️ Редактировать</button>
+                <button class="btn btn-danger btn-small" data-action="delete" data-index="${index}">🗑️ Удалить</button>
             </div>
         </div>
     `).join('');
@@ -91,7 +91,19 @@ function renderEstimatesList() {
     // Add click handlers to cards
     document.querySelectorAll('.estimate-card').forEach(card => {
         card.addEventListener('click', (e) => {
-            if (!e.target.closest('.estimate-card-actions')) {
+            // Check if it's an action button
+            const actionButton = e.target.closest('[data-action]');
+            if (actionButton) {
+                e.stopPropagation();
+                const index = parseInt(actionButton.dataset.index);
+                const action = actionButton.dataset.action;
+                
+                if (action === 'edit') {
+                    editEstimate(index);
+                } else if (action === 'delete') {
+                    deleteEstimate(index);
+                }
+            } else if (!e.target.closest('.estimate-card-actions')) {
                 const index = parseInt(card.dataset.index);
                 editEstimate(index);
             }
@@ -192,7 +204,7 @@ function addItemRow(itemData = null) {
             <label>Сумма:</label>
             <div class="item-total">${formatCurrency((item.quantity || 0) * (item.price || 0))}</div>
         </div>
-        <button type="button" class="btn btn-danger btn-small" onclick="removeItemRow(this)">🗑️</button>
+        <button type="button" class="btn btn-danger btn-small remove-item-btn">🗑️</button>
     `;
     
     itemsContainer.appendChild(row);
@@ -204,12 +216,12 @@ function addItemRow(itemData = null) {
             calculateTotal();
         });
     });
-}
-
-function removeItemRow(button) {
-    const row = button.closest('.item-row');
-    row.remove();
-    calculateTotal();
+    
+    // Add event listener for remove button
+    row.querySelector('.remove-item-btn').addEventListener('click', () => {
+        row.remove();
+        calculateTotal();
+    });
 }
 
 function updateItemTotal(row) {
