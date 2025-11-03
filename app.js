@@ -4,6 +4,18 @@ let currentEstimate = null;
 let editingIndex = -1;
 let generatedEstimateData = null;
 
+// Enterprise Features State
+let templates = [];
+let estimateHistory = {}; // version history for each estimate
+let tags = [];
+let currencies = ['RUB', 'USD', 'EUR'];
+let currentCurrency = 'RUB';
+let exchangeRates = { RUB: 1, USD: 93, EUR: 100 }; // RUB as base
+let searchQuery = '';
+let filterTags = [];
+let sortBy = 'date'; // date, name, total
+let sortOrder = 'desc'; // asc, desc
+
 // PWA State
 let isOnline = navigator.onLine;
 let touchStartY = 0;
@@ -20,25 +32,59 @@ const totalAmount = document.getElementById('totalAmount');
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     loadEstimates();
+    loadTemplates();
+    loadTags();
+    loadEstimateHistory();
     initializeEventListeners();
     renderEstimatesList();
     loadApiKey();
     initializePWAFeatures();
+    initializeEnterpriseFeatures();
 });
 
 // Event Listeners
 function initializeEventListeners() {
+    // Main navigation
     document.getElementById('createWithAiBtn').addEventListener('click', showAiView);
     document.getElementById('createManualBtn').addEventListener('click', createNewEstimate);
-    document.getElementById('createMegaProjectBtn').addEventListener('click', createMegaProject);
     document.getElementById('backFromAiBtn').addEventListener('click', showListView);
     document.getElementById('backToListBtn').addEventListener('click', showListView);
+    
+    // Enterprise features
+    document.getElementById('showDashboardBtn').addEventListener('click', showDashboard);
+    document.getElementById('showTemplatesBtn').addEventListener('click', showTemplatesView);
+    document.getElementById('closeDashboardBtn').addEventListener('click', showListView);
+    document.getElementById('closeTemplatesBtn').addEventListener('click', showListView);
+    
+    // Estimate actions
     document.getElementById('saveEstimateBtn').addEventListener('click', saveCurrentEstimate);
     document.getElementById('addItemBtn').addEventListener('click', addItemRow);
     document.getElementById('exportBtn').addEventListener('click', exportEstimate);
+    document.getElementById('exportExcelBtn').addEventListener('click', exportToExcel);
+    document.getElementById('exportJsonBtn').addEventListener('click', exportToJSON);
+    document.getElementById('saveAsTemplateBtn').addEventListener('click', saveAsTemplate);
+    document.getElementById('duplicateEstimateBtn').addEventListener('click', duplicateEstimate);
+    
+    // AI generation
     document.getElementById('generateEstimateBtn').addEventListener('click', generateEstimateWithAI);
     document.getElementById('acceptAiBtn').addEventListener('click', acceptGeneratedEstimate);
     document.getElementById('regenerateBtn').addEventListener('click', generateEstimateWithAI);
+    
+    // Search and filter
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        searchQuery = e.target.value;
+        renderEstimatesList();
+    });
+    
+    document.getElementById('sortBySelect').addEventListener('change', (e) => {
+        sortBy = e.target.value;
+        renderEstimatesList();
+    });
+    
+    document.getElementById('sortOrderSelect').addEventListener('change', (e) => {
+        sortOrder = e.target.value;
+        renderEstimatesList();
+    });
     
     // Save API key when changed
     document.getElementById('aiApiKey').addEventListener('change', saveApiKey);
@@ -78,11 +124,67 @@ function saveApiKey() {
     }
 }
 
+// Enterprise Storage Functions
+function loadTemplates() {
+    const stored = localStorage.getItem('estimate_templates');
+    if (stored) {
+        try {
+            templates = JSON.parse(stored);
+        } catch (e) {
+            console.error('Error loading templates:', e);
+            templates = [];
+        }
+    }
+    // Initialize default templates if empty
+    if (templates.length === 0) {
+        templates = getDefaultTemplates();
+        saveTemplates();
+    }
+}
+
+function saveTemplates() {
+    localStorage.setItem('estimate_templates', JSON.stringify(templates));
+}
+
+function loadTags() {
+    const stored = localStorage.getItem('estimate_tags');
+    if (stored) {
+        try {
+            tags = JSON.parse(stored);
+        } catch (e) {
+            console.error('Error loading tags:', e);
+            tags = [];
+        }
+    }
+}
+
+function saveTags() {
+    localStorage.setItem('estimate_tags', JSON.stringify(tags));
+}
+
+function loadEstimateHistory() {
+    const stored = localStorage.getItem('estimate_history');
+    if (stored) {
+        try {
+            estimateHistory = JSON.parse(stored);
+        } catch (e) {
+            console.error('Error loading history:', e);
+            estimateHistory = {};
+        }
+    }
+}
+
+function saveEstimateHistory() {
+    localStorage.setItem('estimate_history', JSON.stringify(estimateHistory));
+}
+
 // View Functions
 function showListView() {
     listView.classList.add('active');
     editView.classList.remove('active');
     aiView.classList.remove('active');
+    document.getElementById('dashboardView').classList.remove('active');
+    document.getElementById('templatesView').classList.remove('active');
     renderEstimatesList();
 }
 
@@ -90,16 +192,87 @@ function showEditView() {
     listView.classList.remove('active');
     editView.classList.add('active');
     aiView.classList.remove('active');
+    document.getElementById('dashboardView').classList.remove('active');
+    document.getElementById('templatesView').classList.remove('active');
 }
 
 function showAiView() {
     listView.classList.remove('active');
     editView.classList.remove('active');
     aiView.classList.add('active');
+    document.getElementById('dashboardView').classList.remove('active');
+    document.getElementById('templatesView').classList.remove('active');
     
     // Hide result if visible
     document.getElementById('aiResult').style.display = 'none';
     document.getElementById('aiStatus').style.display = 'none';
+}
+
+function showDashboard() {
+    listView.classList.remove('active');
+    editView.classList.remove('active');
+    aiView.classList.remove('active');
+    document.getElementById('dashboardView').classList.add('active');
+    document.getElementById('templatesView').classList.remove('active');
+    renderDashboard();
+}
+
+function showTemplatesView() {
+    listView.classList.remove('active');
+    editView.classList.remove('active');
+    aiView.classList.remove('active');
+    document.getElementById('dashboardView').classList.remove('active');
+    document.getElementById('templatesView').classList.add('active');
+    renderTemplates();
+}
+
+// Dashboard Rendering
+function renderDashboard() {
+    const stats = getStatistics();
+    document.getElementById('statTotalEstimates').textContent = stats.totalEstimates;
+    document.getElementById('statTotalValue').textContent = formatCurrency(stats.totalValue);
+    document.getElementById('statAvgValue').textContent = formatCurrency(stats.avgValue);
+    document.getElementById('statThisMonth').textContent = stats.thisMonth;
+}
+
+// Templates Rendering
+function renderTemplates() {
+    const templatesList = document.getElementById('templatesList');
+    
+    if (templates.length === 0) {
+        templatesList.innerHTML = '<div class="empty-state"><p>Нет доступных шаблонов</p></div>';
+        return;
+    }
+    
+    templatesList.innerHTML = templates.map(template => `
+        <div class="template-card" data-template-id="${template.id}">
+            <h3>${template.name}</h3>
+            <p class="template-category">${template.category}</p>
+            <p class="template-description">${template.description}</p>
+            <p class="template-items">📋 ${template.items.length} позиций</p>
+            <button class="btn btn-primary use-template-btn" data-template-id="${template.id}">
+                ✨ Использовать шаблон
+            </button>
+        </div>
+    `).join('');
+    
+    // Add event listeners to template buttons
+    document.querySelectorAll('.use-template-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const templateId = btn.dataset.templateId;
+            createFromTemplate(templateId);
+        });
+    });
+}
+
+function duplicateEstimate() {
+    if (!currentEstimate) return;
+    
+    currentEstimate.title = (currentEstimate.title || 'Смета') + ' (копия)';
+    currentEstimate.date = new Date().toISOString().split('T')[0];
+    editingIndex = -1;
+    
+    alert('Создана копия сметы. Отредактируйте и сохраните.');
 }
 
 // AI Generation Functions
@@ -575,33 +748,51 @@ function acceptGeneratedEstimate() {
 
 // Estimate List Functions
 function renderEstimatesList() {
-    if (estimates.length === 0) {
-        estimatesList.innerHTML = `
-            <div class="empty-state">
-                <p>📄 Нет сохраненных смет</p>
-                <p class="help-text">Используйте ИИ для быстрого создания или создайте вручную</p>
-            </div>
-        `;
+    const filtered = filterEstimates();
+    
+    if (filtered.length === 0) {
+        if (estimates.length === 0) {
+            estimatesList.innerHTML = `
+                <div class="empty-state">
+                    <p>📄 Нет сохраненных смет</p>
+                    <p class="help-text">Используйте ИИ для быстрого создания или создайте вручную</p>
+                </div>
+            `;
+        } else {
+            estimatesList.innerHTML = `
+                <div class="empty-state">
+                    <p>🔍 Ничего не найдено</p>
+                    <p class="help-text">Попробуйте изменить параметры поиска</p>
+                </div>
+            `;
+        }
         return;
     }
     
-    estimatesList.innerHTML = estimates.map((estimate, index) => `
-        <div class="estimate-card" data-index="${index}">
+    estimatesList.innerHTML = filtered.map((estimate, index) => {
+        // Find original index for actions
+        const originalIndex = estimates.indexOf(estimate);
+        return `
+        <div class="estimate-card" data-index="${originalIndex}">
             <h3>${estimate.title || 'Без названия'}</h3>
             <div class="estimate-card-info">
                 <span>📅 ${estimate.date || 'Дата не указана'}</span>
                 <span>👤 ${estimate.client || 'Клиент не указан'}</span>
                 <span>📁 ${estimate.project || 'Проект не указан'}</span>
             </div>
+            ${estimate.category ? `<div class="estimate-category">📂 ${estimate.category}</div>` : ''}
+            ${estimate.tags && estimate.tags.length > 0 ? `<div class="estimate-tags">${estimate.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>` : ''}
             <div class="estimate-card-total">
                 Итого: ${formatCurrency(estimate.total || 0)}
             </div>
             <div class="estimate-card-actions">
-                <button class="btn btn-primary btn-small" data-action="edit" data-index="${index}">✏️ Редактировать</button>
-                <button class="btn btn-danger btn-small" data-action="delete" data-index="${index}">🗑️ Удалить</button>
+                <button class="btn btn-primary btn-small" data-action="edit" data-index="${originalIndex}">✏️ Редактировать</button>
+                <button class="btn btn-secondary btn-small" data-action="duplicate" data-index="${originalIndex}">📋 Копировать</button>
+                <button class="btn btn-danger btn-small" data-action="delete" data-index="${originalIndex}">🗑️ Удалить</button>
             </div>
         </div>
-    `).join('');
+    `;
+    }).join('');
     
     // Add click handlers to cards
     document.querySelectorAll('.estimate-card').forEach(card => {
@@ -617,6 +808,8 @@ function renderEstimatesList() {
                     editEstimate(index);
                 } else if (action === 'delete') {
                     deleteEstimate(index);
+                } else if (action === 'duplicate') {
+                    duplicateEstimateFromList(index);
                 }
             } else if (!e.target.closest('.estimate-card-actions')) {
                 const index = parseInt(card.dataset.index);
@@ -855,6 +1048,20 @@ function deleteEstimate(index) {
     }
 }
 
+function duplicateEstimateFromList(index) {
+    const original = estimates[index];
+    const duplicate = JSON.parse(JSON.stringify(original)); // Deep copy
+    duplicate.title = (duplicate.title || 'Смета') + ' (копия)';
+    duplicate.date = new Date().toISOString().split('T')[0];
+    delete duplicate.id; // Remove ID so it gets a new one
+    
+    estimates.push(duplicate);
+    saveEstimates();
+    renderEstimatesList();
+    
+    alert('✅ Смета скопирована!');
+}
+
 // Form Functions
 function loadEstimateToForm() {
     document.getElementById('estimateTitle').value = currentEstimate.title || '';
@@ -1009,6 +1216,275 @@ function saveCurrentEstimate() {
 
 function exportEstimate() {
     window.print();
+}
+
+// Enterprise Features Functions
+function getDefaultTemplates() {
+    return [
+        {
+            id: 'apartment-renovation',
+            name: '🏠 Ремонт квартиры (типовой)',
+            description: 'Стандартный ремонт 2-комнатной квартиры 50-60м²',
+            category: 'Жилая недвижимость',
+            items: [
+                { description: 'Демонтаж старых покрытий', quantity: 60, unit: 'м²', price: 350 },
+                { description: 'Выравнивание стен штукатуркой', quantity: 120, unit: 'м²', price: 650 },
+                { description: 'Шпаклевка стен под покраску', quantity: 120, unit: 'м²', price: 280 },
+                { description: 'Покраска стен (2 слоя)', quantity: 120, unit: 'м²', price: 420 },
+                { description: 'Укладка ламината', quantity: 40, unit: 'м²', price: 850 },
+                { description: 'Укладка плитки (ванная, кухня)', quantity: 20, unit: 'м²', price: 1450 },
+                { description: 'Установка натяжного потолка', quantity: 60, unit: 'м²', price: 650 },
+                { description: 'Электромонтажные работы', quantity: 1, unit: 'шт', price: 45000 },
+                { description: 'Сантехнические работы', quantity: 1, unit: 'шт', price: 35000 }
+            ]
+        },
+        {
+            id: 'office-construction',
+            name: '🏢 Строительство офиса',
+            description: 'Строительство офисного помещения 200-300м²',
+            category: 'Коммерческая недвижимость',
+            items: [
+                { description: 'Возведение каркаса', quantity: 250, unit: 'м²', price: 8500 },
+                { description: 'Устройство перегородок', quantity: 150, unit: 'м²', price: 1850 },
+                { description: 'Отделка офисных помещений', quantity: 250, unit: 'м²', price: 3200 },
+                { description: 'Устройство подвесного потолка', quantity: 250, unit: 'м²', price: 1650 },
+                { description: 'Напольное покрытие (ковролин)', quantity: 250, unit: 'м²', price: 1200 },
+                { description: 'Системы вентиляции', quantity: 250, unit: 'м²', price: 2800 },
+                { description: 'Электроснабжение офиса', quantity: 1, unit: 'шт', price: 450000 },
+                { description: 'Системы пожарной безопасности', quantity: 250, unit: 'м²', price: 850 },
+                { description: 'Слаботочные системы', quantity: 1, unit: 'шт', price: 280000 }
+            ]
+        },
+        {
+            id: 'house-construction',
+            name: '🏡 Строительство дома',
+            description: 'Строительство частного дома 150-200м²',
+            category: 'Жилая недвижимость',
+            items: [
+                { description: 'Земляные работы', quantity: 80, unit: 'м³', price: 1200 },
+                { description: 'Устройство фундамента', quantity: 60, unit: 'м³', price: 18000 },
+                { description: 'Возведение стен (кирпич)', quantity: 300, unit: 'м²', price: 4500 },
+                { description: 'Устройство перекрытий', quantity: 180, unit: 'м²', price: 5200 },
+                { description: 'Кровельные работы', quantity: 200, unit: 'м²', price: 2800 },
+                { description: 'Утепление фасада', quantity: 250, unit: 'м²', price: 1650 },
+                { description: 'Отделка фасада (штукатурка)', quantity: 250, unit: 'м²', price: 1850 },
+                { description: 'Окна ПВХ', quantity: 25, unit: 'м²', price: 8500 },
+                { description: 'Внутренняя отделка', quantity: 180, unit: 'м²', price: 4200 },
+                { description: 'Инженерные системы', quantity: 1, unit: 'шт', price: 650000 }
+            ]
+        },
+        {
+            id: 'shop-renovation',
+            name: '🏪 Ремонт магазина',
+            description: 'Ремонт торгового помещения 100-150м²',
+            category: 'Коммерческая недвижимость',
+            items: [
+                { description: 'Демонтаж старой отделки', quantity: 120, unit: 'м²', price: 450 },
+                { description: 'Выравнивание стен', quantity: 200, unit: 'м²', price: 680 },
+                { description: 'Покраска стен', quantity: 200, unit: 'м²', price: 380 },
+                { description: 'Напольное покрытие (коммерческий линолеум)', quantity: 120, unit: 'м²', price: 1450 },
+                { description: 'Подвесной потолок Armstrong', quantity: 120, unit: 'м²', price: 1250 },
+                { description: 'Освещение торгового зала', quantity: 120, unit: 'м²', price: 1850 },
+                { description: 'Витрины и стеллажи', quantity: 1, unit: 'шт', price: 280000 },
+                { description: 'Системы безопасности и видеонаблюдения', quantity: 1, unit: 'шт', price: 120000 }
+            ]
+        },
+        {
+            id: 'landscape-design',
+            name: '🌳 Благоустройство территории',
+            description: 'Благоустройство участка 10-15 соток',
+            category: 'Ландшафт',
+            items: [
+                { description: 'Планировка территории', quantity: 1200, unit: 'м²', price: 280 },
+                { description: 'Устройство дорожек (тротуарная плитка)', quantity: 80, unit: 'м²', price: 2800 },
+                { description: 'Установка бордюров', quantity: 120, unit: 'м', price: 650 },
+                { description: 'Посев газона', quantity: 800, unit: 'м²', price: 380 },
+                { description: 'Посадка деревьев', quantity: 15, unit: 'шт', price: 8500 },
+                { description: 'Посадка кустарников', quantity: 40, unit: 'шт', price: 2200 },
+                { description: 'Устройство цветников', quantity: 50, unit: 'м²', price: 1850 },
+                { description: 'Система автополива', quantity: 1, unit: 'шт', price: 180000 },
+                { description: 'Наружное освещение', quantity: 20, unit: 'шт', price: 12000 },
+                { description: 'Малые архитектурные формы', quantity: 1, unit: 'шт', price: 95000 }
+            ]
+        }
+    ];
+}
+
+function initializeEnterpriseFeatures() {
+    console.log('✓ Enterprise features initialized');
+    console.log(`  - Templates loaded: ${templates.length}`);
+    console.log(`  - Tags loaded: ${tags.length}`);
+    console.log(`  - Currencies: ${currencies.join(', ')}`);
+}
+
+// Advanced Export Functions
+function exportToExcel() {
+    if (!currentEstimate) return;
+    
+    let csvContent = "Наименование,Количество,Единица,Цена за ед.,Сумма\n";
+    currentEstimate.items.forEach(item => {
+        const total = item.quantity * item.price;
+        csvContent += `"${item.description}",${item.quantity},"${item.unit}",${item.price},${total}\n`;
+    });
+    csvContent += `\nИтого:,,,,${currentEstimate.total}`;
+    
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${currentEstimate.title || 'smeta'}.csv`;
+    link.click();
+}
+
+function exportToJSON() {
+    if (!currentEstimate) return;
+    
+    const dataStr = JSON.stringify(currentEstimate, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${currentEstimate.title || 'smeta'}.json`;
+    link.click();
+}
+
+// Template Functions
+function createFromTemplate(templateId) {
+    const template = templates.find(t => t.id === templateId);
+    if (!template) return;
+    
+    currentEstimate = {
+        title: template.name,
+        date: new Date().toISOString().split('T')[0],
+        client: '',
+        project: '',
+        items: JSON.parse(JSON.stringify(template.items)), // Deep copy
+        total: 0,
+        category: template.category,
+        tags: []
+    };
+    
+    // Calculate total
+    currentEstimate.total = currentEstimate.items.reduce((sum, item) => {
+        return sum + (item.quantity * item.price);
+    }, 0);
+    
+    editingIndex = -1;
+    loadEstimateToForm();
+    showEditView();
+}
+
+function saveAsTemplate() {
+    if (!currentEstimate || !currentEstimate.items || currentEstimate.items.length === 0) {
+        alert('Нет позиций для сохранения как шаблон');
+        return;
+    }
+    
+    const name = prompt('Введите название шаблона:', currentEstimate.title);
+    if (!name) return;
+    
+    const description = prompt('Введите описание шаблона (необязательно):');
+    const category = prompt('Введите категорию (Жилая недвижимость, Коммерческая недвижимость, Ландшафт):');
+    
+    const template = {
+        id: 'custom-' + Date.now(),
+        name: name,
+        description: description || '',
+        category: category || 'Разное',
+        items: JSON.parse(JSON.stringify(currentEstimate.items)) // Deep copy
+    };
+    
+    templates.push(template);
+    saveTemplates();
+    alert('✅ Шаблон сохранен!');
+}
+
+// Search and Filter Functions
+function filterEstimates() {
+    let filtered = [...estimates];
+    
+    // Apply search
+    if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        filtered = filtered.filter(est => 
+            (est.title && est.title.toLowerCase().includes(query)) ||
+            (est.client && est.client.toLowerCase().includes(query)) ||
+            (est.project && est.project.toLowerCase().includes(query))
+        );
+    }
+    
+    // Apply tag filter
+    if (filterTags.length > 0) {
+        filtered = filtered.filter(est => 
+            est.tags && est.tags.some(tag => filterTags.includes(tag))
+        );
+    }
+    
+    // Apply sorting
+    filtered.sort((a, b) => {
+        let comparison = 0;
+        switch (sortBy) {
+            case 'name':
+                comparison = (a.title || '').localeCompare(b.title || '');
+                break;
+            case 'total':
+                comparison = (a.total || 0) - (b.total || 0);
+                break;
+            case 'date':
+            default:
+                comparison = (new Date(a.date || 0)) - (new Date(b.date || 0));
+        }
+        return sortOrder === 'asc' ? comparison : -comparison;
+    });
+    
+    return filtered;
+}
+
+// Version History Functions
+function saveVersion(estimateId) {
+    if (!estimateId) return;
+    
+    if (!estimateHistory[estimateId]) {
+        estimateHistory[estimateId] = [];
+    }
+    
+    const estimate = estimates.find(e => e.id === estimateId);
+    if (!estimate) return;
+    
+    estimateHistory[estimateId].push({
+        timestamp: new Date().toISOString(),
+        data: JSON.parse(JSON.stringify(estimate)),
+        user: 'Текущий пользователь'
+    });
+    
+    // Keep only last 50 versions
+    if (estimateHistory[estimateId].length > 50) {
+        estimateHistory[estimateId] = estimateHistory[estimateId].slice(-50);
+    }
+    
+    saveEstimateHistory();
+}
+
+// Dashboard Statistics
+function getStatistics() {
+    const stats = {
+        totalEstimates: estimates.length,
+        totalValue: estimates.reduce((sum, est) => sum + (est.total || 0), 0),
+        avgValue: 0,
+        thisMonth: 0,
+        thisMonthValue: 0
+    };
+    
+    stats.avgValue = stats.totalEstimates > 0 ? stats.totalValue / stats.totalEstimates : 0;
+    
+    const now = new Date();
+    const thisMonth = estimates.filter(est => {
+        const estDate = new Date(est.date);
+        return estDate.getMonth() === now.getMonth() && estDate.getFullYear() === now.getFullYear();
+    });
+    
+    stats.thisMonth = thisMonth.length;
+    stats.thisMonthValue = thisMonth.reduce((sum, est) => sum + (est.total || 0), 0);
+    
+    return stats;
 }
 
 // Utility Functions
