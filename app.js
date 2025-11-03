@@ -355,37 +355,80 @@ ${materialsAnalysis}
 }
 
 async function callGeminiAPI(apiKey, prompt) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+    // Use the latest stable model - gemini-1.5-flash is fast and capable
+    // Alternatives: gemini-1.5-pro (more capable but slower), gemini-2.0-flash-exp (experimental)
+    const models = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash-exp'];
     
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            contents: [{
-                parts: [{
-                    text: prompt
-                }]
-            }],
-            generationConfig: {
-                temperature: 0.7,
-                topK: 40,
-                topP: 0.95,
-                maxOutputTokens: 2048,
+    let lastError = null;
+    
+    // Try each model until one works
+    for (const model of models) {
+        try {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+            
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{
+                            text: prompt
+                        }]
+                    }],
+                    generationConfig: {
+                        temperature: 0.7,
+                        topK: 40,
+                        topP: 0.95,
+                        maxOutputTokens: 2048,
+                    }
+                })
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                lastError = errorData.error?.message || 'API request failed';
+                
+                // If it's a model not found error, try the next model
+                if (response.status === 404 || lastError.includes('models/')) {
+                    console.log(`Model ${model} not available, trying next...`);
+                    continue;
+                }
+                
+                // For other errors (like invalid API key), throw immediately
+                throw new Error(lastError);
             }
-        })
-    });
-    
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || 'API request failed');
+            
+            const data = await response.json();
+            
+            // Check if response has the expected structure
+            if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+                throw new Error('Неожиданный формат ответа от API');
+            }
+            
+            const text = data.candidates[0].content.parts[0].text;
+            
+            console.log(`✓ Successfully used model: ${model}`);
+            return text;
+            
+        } catch (error) {
+            lastError = error.message;
+            console.error(`Error with model ${model}:`, error.message);
+            
+            // If it's a network error or API key error, don't try other models
+            if (error.message.includes('API key') || error.message.includes('invalid') || 
+                error.message.includes('network') || error.message.includes('fetch')) {
+                throw error;
+            }
+            
+            // Otherwise, try the next model
+            continue;
+        }
     }
     
-    const data = await response.json();
-    const text = data.candidates[0].content.parts[0].text;
-    
-    return text;
+    // If all models failed
+    throw new Error(`Не удалось подключиться к API Gemini. Последняя ошибка: ${lastError}\n\nПроверьте:\n1. Правильность API ключа\n2. Активацию API ключа на https://makersuite.google.com/app/apikey\n3. Наличие интернет соединения`);
 }
 
 function parseAIResponse(aiResponse) {
