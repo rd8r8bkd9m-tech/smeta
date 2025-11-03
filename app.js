@@ -16,6 +16,10 @@ let filterTags = [];
 let sortBy = 'date'; // date, name, total
 let sortOrder = 'desc'; // asc, desc
 
+// Enterprise Configuration
+const MAX_ESTIMATE_VERSIONS = 50; // Maximum number of versions to keep per estimate
+const DEFAULT_CATEGORIES = ['Жилая недвижимость', 'Коммерческая недвижимость', 'Ландшафт', 'Разное'];
+
 // PWA State
 let isOnline = navigator.onLine;
 let touchStartY = 0;
@@ -1455,9 +1459,9 @@ function saveVersion(estimateId) {
         user: 'Текущий пользователь'
     });
     
-    // Keep only last 50 versions
-    if (estimateHistory[estimateId].length > 50) {
-        estimateHistory[estimateId] = estimateHistory[estimateId].slice(-50);
+    // Keep only last MAX_ESTIMATE_VERSIONS versions
+    if (estimateHistory[estimateId].length > MAX_ESTIMATE_VERSIONS) {
+        estimateHistory[estimateId] = estimateHistory[estimateId].slice(-MAX_ESTIMATE_VERSIONS);
     }
     
     saveEstimateHistory();
