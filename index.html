@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Смета - Приложение для составления смет</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📋 Смета</h1>
+            <p class="subtitle">Приложение для составления и редактирования смет</p>
+        </header>
+
+        <main id="app">
+            <!-- List View -->
+            <div id="listView" class="view active">
+                <div class="toolbar">
+                    <button id="createWithAiBtn" class="btn btn-primary">
+                        🤖 Создать с помощью ИИ
+                    </button>
+                    <button id="createManualBtn" class="btn btn-secondary">
+                        ➕ Создать вручную
+                    </button>
+                </div>
+                
+                <div id="estimatesList" class="estimates-list">
+                    <div class="empty-state">
+                        <p>📄 Нет сохраненных смет</p>
+                        <p class="help-text">Используйте ИИ для быстрого создания или создайте вручную</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Generation View -->
+            <div id="aiView" class="view">
+                <div class="toolbar">
+                    <button id="backFromAiBtn" class="btn">← Назад к списку</button>
+                </div>
+
+                <div class="ai-form">
+                    <div class="ai-header">
+                        <h2>🤖 ИИ Генератор смет</h2>
+                        <p class="ai-description">Опишите работы и объект измерения. Наш виртуальный строительный институт с командой специалистов создаст смету с точностью 99%</p>
+                        
+                        <div class="specialists-info">
+                            <p><strong>Команда специалистов:</strong></p>
+                            <ul class="specialists-list">
+                                <li>🏗️ Главный инженер - анализ объекта</li>
+                                <li>📐 Архитектор - расчет объемов</li>
+                                <li>🔨 Прораб - определение работ</li>
+                                <li>📦 Снабженец - подбор материалов</li>
+                                <li>💰 Сметчик - итоговая смета</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="aiApiKey">API ключ Gemini:</label>
+                        <input type="password" id="aiApiKey" class="form-control" placeholder="Введите ваш API ключ Google Gemini">
+                        <small class="help-text">Получите бесплатный ключ на <a href="https://makersuite.google.com/app/apikey" target="_blank">makersuite.google.com</a></small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="aiDescription">Описание объекта и работ:</label>
+                        <textarea id="aiDescription" class="form-control" rows="6" placeholder="Пример: Ремонт 2-комнатной квартиры 52 кв.м., необходимо выровнять стены штукатуркой, покрасить стены и потолки, уложить ламинат в комнатах и плитку в ванной"></textarea>
+                    </div>
+
+                    <div class="ai-controls">
+                        <button id="generateEstimateBtn" class="btn btn-success btn-large">
+                            ✨ Сгенерировать смету
+                        </button>
+                    </div>
+
+                    <div id="aiStatus" class="ai-status" style="display: none;">
+                        <div class="loading-spinner"></div>
+                        <p class="status-text">Генерация сметы...</p>
+                    </div>
+
+                    <div id="aiResult" class="ai-result" style="display: none;">
+                        <h3>Сгенерированная смета</h3>
+                        <div id="aiResultContent"></div>
+                        <div class="ai-actions">
+                            <button id="acceptAiBtn" class="btn btn-success">✓ Принять и редактировать</button>
+                            <button id="regenerateBtn" class="btn btn-secondary">🔄 Сгенерировать заново</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit View -->
+            <div id="editView" class="view">
+                <div class="toolbar">
+                    <button id="backToListBtn" class="btn">← Назад к списку</button>
+                    <button id="saveEstimateBtn" class="btn btn-success">💾 Сохранить</button>
+                    <button id="exportBtn" class="btn">🖨️ Печать</button>
+                </div>
+
+                <div class="estimate-form">
+                    <div class="form-header">
+                        <div class="form-group">
+                            <label for="estimateTitle">Название сметы:</label>
+                            <input type="text" id="estimateTitle" class="form-control" placeholder="Введите название сметы">
+                        </div>
+                        <div class="form-group">
+                            <label for="estimateDate">Дата:</label>
+                            <input type="date" id="estimateDate" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="estimateClient">Клиент:</label>
+                            <input type="text" id="estimateClient" class="form-control" placeholder="Имя клиента">
+                        </div>
+                        <div class="form-group">
+                            <label for="estimateProject">Проект:</label>
+                            <input type="text" id="estimateProject" class="form-control" placeholder="Название проекта">
+                        </div>
+                    </div>
+
+                    <div class="line-items">
+                        <h3>Позиции сметы</h3>
+                        <button id="addItemBtn" class="btn btn-secondary">➕ Добавить позицию</button>
+                        
+                        <div id="itemsContainer" class="items-container">
+                            <!-- Items will be added dynamically -->
+                        </div>
+                    </div>
+
+                    <div class="totals">
+                        <div class="total-row">
+                            <span class="total-label">Итого:</span>
+                            <span id="totalAmount" class="total-amount">0.00 ₽</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>© 2025 Смета - Программа для составления смет</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
