@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function initializeEventListeners() {
     document.getElementById('createWithAiBtn').addEventListener('click', showAiView);
     document.getElementById('createManualBtn').addEventListener('click', createNewEstimate);
+    document.getElementById('createMegaProjectBtn').addEventListener('click', createMegaProject);
     document.getElementById('backFromAiBtn').addEventListener('click', showListView);
     document.getElementById('backToListBtn').addEventListener('click', showListView);
     document.getElementById('saveEstimateBtn').addEventListener('click', saveCurrentEstimate);
@@ -637,6 +638,209 @@ function createNewEstimate() {
     editingIndex = -1;
     loadEstimateToForm();
     showEditView();
+}
+
+// Create a billion-dollar mega project demonstration
+function createMegaProject() {
+    // Calculate to reach approximately 1 billion dollars (or ~93 billion rubles at 93 RUB/USD)
+    const targetBillionRubles = 93000000000; // ~1 billion USD in rubles
+    
+    currentEstimate = {
+        title: 'Мегапроект: Международный бизнес-комплекс "Москва-Сити 2.0"',
+        date: new Date().toISOString().split('T')[0],
+        client: 'Правительство г. Москвы',
+        project: 'Строительство многофункционального бизнес-комплекса с офисными, торговыми и жилыми зонами',
+        items: [
+            // Major infrastructure
+            {
+                description: '🏗️ [Работы] Подготовка территории и земляные работы (850 тыс. м³)',
+                quantity: 850000,
+                unit: 'м³',
+                price: 4500
+            },
+            {
+                description: '🏗️ [Работы] Устройство фундамента и подземных уровней (5 уровней парковки)',
+                quantity: 425000,
+                unit: 'м³',
+                price: 35000
+            },
+            {
+                description: '🏢 [Работы] Возведение несущих конструкций (башни высотой 350м)',
+                quantity: 320000,
+                unit: 'м²',
+                price: 125000
+            },
+            {
+                description: '🏢 [Работы] Монтаж фасадных систем (стекло, алюминий, композиты)',
+                quantity: 280000,
+                unit: 'м²',
+                price: 45000
+            },
+            // Materials
+            {
+                description: '📦 [Материалы] Бетон высокопрочный M500-M600',
+                quantity: 650000,
+                unit: 'м³',
+                price: 12000
+            },
+            {
+                description: '📦 [Материалы] Арматура класса A500C',
+                quantity: 85000,
+                unit: 'т',
+                price: 65000
+            },
+            {
+                description: '📦 [Материалы] Металлоконструкции (колонны, балки)',
+                quantity: 42000,
+                unit: 'т',
+                price: 95000
+            },
+            {
+                description: '📦 [Материалы] Стеклянные фасадные панели (энергоэффективные)',
+                quantity: 280000,
+                unit: 'м²',
+                price: 18500
+            },
+            // Engineering systems
+            {
+                description: '⚡ [Работы] Электроснабжение и освещение (трансформаторные подстанции)',
+                quantity: 45,
+                unit: 'шт',
+                price: 28000000
+            },
+            {
+                description: '💧 [Работы] Системы водоснабжения и канализации',
+                quantity: 850000,
+                unit: 'м²',
+                price: 3200
+            },
+            {
+                description: '❄️ [Работы] Системы вентиляции и кондиционирования',
+                quantity: 850000,
+                unit: 'м²',
+                price: 4800
+            },
+            {
+                description: '🔥 [Работы] Противопожарные системы и сигнализация',
+                quantity: 850000,
+                unit: 'м²',
+                price: 2100
+            },
+            {
+                description: '🚀 [Материалы] Лифтовое оборудование (120 высокоскоростных лифтов)',
+                quantity: 120,
+                unit: 'шт',
+                price: 15000000
+            },
+            {
+                description: '🚀 [Материалы] Эскалаторы и травалаторы',
+                quantity: 85,
+                unit: 'шт',
+                price: 4500000
+            },
+            // Interior and finishing
+            {
+                description: '✨ [Работы] Внутренняя отделка офисных помещений премиум-класса',
+                quantity: 480000,
+                unit: 'м²',
+                price: 28000
+            },
+            {
+                description: '✨ [Работы] Отделка торговых площадей',
+                quantity: 120000,
+                unit: 'м²',
+                price: 35000
+            },
+            {
+                description: '✨ [Работы] Отделка жилых помещений класса "люкс"',
+                quantity: 95000,
+                unit: 'м²',
+                price: 42000
+            },
+            {
+                description: '🎨 [Материалы] Натуральный камень для отделки (мрамор, гранит)',
+                quantity: 45000,
+                unit: 'м²',
+                price: 25000
+            },
+            // Smart building systems
+            {
+                description: '🤖 [Работы] Системы "Умный дом" и автоматизация здания (BMS)',
+                quantity: 1,
+                unit: 'шт',
+                price: 850000000
+            },
+            {
+                description: '📡 [Работы] IT-инфраструктура и серверные',
+                quantity: 1,
+                unit: 'шт',
+                price: 420000000
+            },
+            {
+                description: '🛡️ [Работы] Системы безопасности (видеонаблюдение, СКУД, охрана)',
+                quantity: 1,
+                unit: 'шт',
+                price: 380000000
+            },
+            // Landscaping and external works
+            {
+                description: '🌳 [Работы] Благоустройство территории (25 га)',
+                quantity: 250000,
+                unit: 'м²',
+                price: 8500
+            },
+            {
+                description: '🚗 [Работы] Устройство дорог, парковок и подъездных путей',
+                quantity: 85000,
+                unit: 'м²',
+                price: 12000
+            },
+            {
+                description: '💡 [Работы] Наружное освещение и малые архитектурные формы',
+                quantity: 1,
+                unit: 'шт',
+                price: 180000000
+            },
+            // Project management and design
+            {
+                description: '📋 [Работы] Проектно-изыскательские работы',
+                quantity: 1,
+                unit: 'шт',
+                price: 950000000
+            },
+            {
+                description: '👷 [Работы] Генподрядные и управленческие услуги',
+                quantity: 1,
+                unit: 'шт',
+                price: 1850000000
+            },
+            {
+                description: '✅ [Работы] Авторский надзор и технический контроль',
+                quantity: 1,
+                unit: 'шт',
+                price: 420000000
+            }
+        ],
+        total: 0
+    };
+    
+    // Calculate total
+    currentEstimate.total = currentEstimate.items.reduce((sum, item) => {
+        return sum + (item.quantity * item.price);
+    }, 0);
+    
+    editingIndex = -1;
+    loadEstimateToForm();
+    showEditView();
+    
+    // Show success message
+    setTimeout(() => {
+        alert(`✨ Создан демонстрационный мегапроект!\n\n` +
+              `💎 Стоимость: ${formatCurrency(currentEstimate.total)}\n\n` +
+              `📊 Позиций: ${currentEstimate.items.length}\n\n` +
+              `🏗️ Масштаб: Международный бизнес-комплекс с офисными, торговыми и жилыми зонами\n\n` +
+              `Это демонстрация возможностей приложения для работы с крупнейшими проектами!`);
+    }, 500);
 }
 
 function editEstimate(index) {
