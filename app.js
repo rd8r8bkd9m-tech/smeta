@@ -642,9 +642,6 @@ function createNewEstimate() {
 
 // Create a billion-dollar mega project demonstration
 function createMegaProject() {
-    // Calculate to reach approximately 1 billion dollars (or ~93 billion rubles at 93 RUB/USD)
-    const targetBillionRubles = 93000000000; // ~1 billion USD in rubles
-    
     currentEstimate = {
         title: 'Мегапроект: Международный бизнес-комплекс "Москва-Сити 2.0"',
         date: new Date().toISOString().split('T')[0],
