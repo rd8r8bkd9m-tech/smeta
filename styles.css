@@ -313,6 +313,32 @@ footer {
     color: var(--text-light);
     font-size: 1rem;
     line-height: 1.5;
+    margin-bottom: 20px;
+}
+
+.specialists-info {
+    background: var(--background);
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 20px;
+    border-left: 4px solid var(--primary-color);
+}
+
+.specialists-info p {
+    margin: 0 0 10px 0;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.specialists-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.specialists-list li {
+    padding: 5px 0;
+    color: var(--text-light);
 }
 
 .ai-form textarea {
@@ -448,6 +474,52 @@ footer {
 .item-price {
     font-weight: 600;
     color: var(--success-color);
+}
+
+.institute-badge {
+    background: linear-gradient(135deg, var(--primary-color), #1e40af);
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.institute-badge h4 {
+    margin: 0 0 10px 0;
+    font-size: 1.3rem;
+}
+
+.accuracy-badge {
+    background: rgba(255, 255, 255, 0.2);
+    display: inline-block;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.total-summary {
+    border-top: 3px solid var(--primary-color);
+    padding-top: 15px;
+    margin-top: 20px;
+}
+
+.certification {
+    text-align: center;
+    color: var(--text-light);
+    font-size: 0.9rem;
+    font-style: italic;
+    margin-top: 10px;
+}
+
+.note {
+    background: #fef3c7;
+    padding: 10px 15px;
+    border-left: 4px solid #f59e0b;
+    border-radius: 4px;
+    margin: 15px 0;
+    color: #92400e;
 }
 
 /* Print Styles */
