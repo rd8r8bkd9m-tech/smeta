@@ -16,9 +16,17 @@ let filterTags = [];
 let sortBy = 'date'; // date, name, total
 let sortOrder = 'desc'; // asc, desc
 
+// Advanced Features State
+let selectedEstimatesForComparison = []; // Multiple estimate comparison
+let favorites = []; // Favorite estimates
+let recentlyViewed = []; // Recently viewed estimates
+let notifications = []; // System notifications
+
 // Enterprise Configuration
 const MAX_ESTIMATE_VERSIONS = 50; // Maximum number of versions to keep per estimate
 const DEFAULT_CATEGORIES = ['Жилая недвижимость', 'Коммерческая недвижимость', 'Ландшафт', 'Разное'];
+const MAX_RECENT_ITEMS = 10; // Maximum number of recently viewed items
+const MAX_COMPARISON_ITEMS = 5; // Maximum estimates for comparison
 
 // PWA State
 let isOnline = navigator.onLine;
@@ -39,6 +47,8 @@ document.addEventListener('DOMContentLoaded', () => {
     loadTemplates();
     loadTags();
     loadEstimateHistory();
+    loadFavorites();
+    loadRecentlyViewed();
     initializeEventListeners();
     renderEstimatesList();
     loadApiKey();
@@ -57,6 +67,7 @@ function initializeEventListeners() {
     // Enterprise features
     document.getElementById('showDashboardBtn').addEventListener('click', showDashboard);
     document.getElementById('showTemplatesBtn').addEventListener('click', showTemplatesView);
+    document.getElementById('compareEstimatesBtn').addEventListener('click', compareEstimates);
     document.getElementById('closeDashboardBtn').addEventListener('click', showListView);
     document.getElementById('closeTemplatesBtn').addEventListener('click', showListView);
     
@@ -1474,7 +1485,9 @@ function getStatistics() {
         totalValue: estimates.reduce((sum, est) => sum + (est.total || 0), 0),
         avgValue: 0,
         thisMonth: 0,
-        thisMonthValue: 0
+        thisMonthValue: 0,
+        byCategory: {},
+        recentGrowth: 0
     };
     
     stats.avgValue = stats.totalEstimates > 0 ? stats.totalValue / stats.totalEstimates : 0;
@@ -1488,7 +1501,273 @@ function getStatistics() {
     stats.thisMonth = thisMonth.length;
     stats.thisMonthValue = thisMonth.reduce((sum, est) => sum + (est.total || 0), 0);
     
+    // Calculate by category
+    estimates.forEach(est => {
+        const cat = est.category || 'Разное';
+        if (!stats.byCategory[cat]) {
+            stats.byCategory[cat] = { count: 0, value: 0 };
+        }
+        stats.byCategory[cat].count++;
+        stats.byCategory[cat].value += est.total || 0;
+    });
+    
+    // Calculate growth
+    const lastMonth = estimates.filter(est => {
+        const estDate = new Date(est.date);
+        const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        return estDate.getMonth() === lastMonthDate.getMonth() && 
+               estDate.getFullYear() === lastMonthDate.getFullYear();
+    });
+    
+    const lastMonthValue = lastMonth.reduce((sum, est) => sum + (est.total || 0), 0);
+    if (lastMonthValue > 0) {
+        stats.recentGrowth = ((stats.thisMonthValue - lastMonthValue) / lastMonthValue) * 100;
+    }
+    
     return stats;
+}
+
+// Comparison Functions
+function toggleEstimateForComparison(index) {
+    const estimateId = estimates[index].id || index;
+    const idx = selectedEstimatesForComparison.indexOf(estimateId);
+    
+    if (idx > -1) {
+        selectedEstimatesForComparison.splice(idx, 1);
+    } else {
+        if (selectedEstimatesForComparison.length < MAX_COMPARISON_ITEMS) {
+            selectedEstimatesForComparison.push(estimateId);
+        } else {
+            alert(`Можно сравнить максимум ${MAX_COMPARISON_ITEMS} смет одновременно`);
+            return;
+        }
+    }
+    
+    renderEstimatesList();
+    updateComparisonButton();
+}
+
+function updateComparisonButton() {
+    const btn = document.getElementById('compareEstimatesBtn');
+    if (btn) {
+        if (selectedEstimatesForComparison.length >= 2) {
+            btn.disabled = false;
+            btn.textContent = `🔍 Сравнить (${selectedEstimatesForComparison.length})`;
+        } else {
+            btn.disabled = true;
+            btn.textContent = '🔍 Сравнить (выберите минимум 2)';
+        }
+    }
+}
+
+function compareEstimates() {
+    if (selectedEstimatesForComparison.length < 2) {
+        alert('Выберите минимум 2 сметы для сравнения');
+        return;
+    }
+    
+    const selectedEstimates = selectedEstimatesForComparison.map(id => 
+        estimates.find((e, i) => (e.id || i) === id)
+    ).filter(e => e);
+    
+    showComparisonView(selectedEstimates);
+}
+
+function showComparisonView(estimatesToCompare) {
+    // Hide other views
+    listView.classList.remove('active');
+    editView.classList.remove('active');
+    aiView.classList.remove('active');
+    document.getElementById('dashboardView').classList.remove('active');
+    document.getElementById('templatesView').classList.remove('active');
+    
+    // Show comparison view
+    let comparisonView = document.getElementById('comparisonView');
+    if (!comparisonView) {
+        comparisonView = document.createElement('div');
+        comparisonView.id = 'comparisonView';
+        comparisonView.className = 'view';
+        document.querySelector('#app').appendChild(comparisonView);
+    }
+    
+    comparisonView.classList.add('active');
+    renderComparison(estimatesToCompare);
+}
+
+function renderComparison(estimatesToCompare) {
+    const comparisonView = document.getElementById('comparisonView');
+    
+    let html = `
+        <div class="comparison-header">
+            <h2>📊 Сравнение смет</h2>
+            <button id="closeComparisonBtn" class="btn btn-secondary">← Назад к списку</button>
+        </div>
+        
+        <div class="comparison-grid">
+            <div class="comparison-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Параметр</th>
+                            ${estimatesToCompare.map(est => `<th>${est.title || 'Без названия'}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Дата</strong></td>
+                            ${estimatesToCompare.map(est => `<td>${est.date || '-'}</td>`).join('')}
+                        </tr>
+                        <tr>
+                            <td><strong>Клиент</strong></td>
+                            ${estimatesToCompare.map(est => `<td>${est.client || '-'}</td>`).join('')}
+                        </tr>
+                        <tr>
+                            <td><strong>Проект</strong></td>
+                            ${estimatesToCompare.map(est => `<td>${est.project || '-'}</td>`).join('')}
+                        </tr>
+                        <tr>
+                            <td><strong>Категория</strong></td>
+                            ${estimatesToCompare.map(est => `<td>${est.category || '-'}</td>`).join('')}
+                        </tr>
+                        <tr>
+                            <td><strong>Количество позиций</strong></td>
+                            ${estimatesToCompare.map(est => `<td>${est.items ? est.items.length : 0}</td>`).join('')}
+                        </tr>
+                        <tr class="highlight-row">
+                            <td><strong>Итоговая стоимость</strong></td>
+                            ${estimatesToCompare.map(est => `<td><strong>${formatCurrency(est.total || 0)}</strong></td>`).join('')}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="comparison-summary">
+                <h3>Сводка сравнения</h3>
+                <div class="summary-cards">
+                    <div class="summary-card">
+                        <div class="summary-label">Самая дорогая</div>
+                        <div class="summary-value">${formatCurrency(Math.max(...estimatesToCompare.map(e => e.total || 0)))}</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Самая дешевая</div>
+                        <div class="summary-value">${formatCurrency(Math.min(...estimatesToCompare.map(e => e.total || 0)))}</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Средняя</div>
+                        <div class="summary-value">${formatCurrency(estimatesToCompare.reduce((sum, e) => sum + (e.total || 0), 0) / estimatesToCompare.length)}</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Разница</div>
+                        <div class="summary-value">${formatCurrency(Math.max(...estimatesToCompare.map(e => e.total || 0)) - Math.min(...estimatesToCompare.map(e => e.total || 0)))}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    comparisonView.innerHTML = html;
+    
+    // Add event listener
+    document.getElementById('closeComparisonBtn').addEventListener('click', () => {
+        comparisonView.classList.remove('active');
+        selectedEstimatesForComparison = [];
+        showListView();
+    });
+}
+
+// Favorites Management
+function toggleFavorite(index) {
+    const estimateId = estimates[index].id || index;
+    const idx = favorites.indexOf(estimateId);
+    
+    if (idx > -1) {
+        favorites.splice(idx, 1);
+    } else {
+        favorites.push(estimateId);
+    }
+    
+    saveFavorites();
+    renderEstimatesList();
+}
+
+function saveFavorites() {
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+}
+
+function loadFavorites() {
+    const stored = localStorage.getItem('favorites');
+    if (stored) {
+        try {
+            favorites = JSON.parse(stored);
+        } catch (e) {
+            favorites = [];
+        }
+    }
+}
+
+// Recently Viewed Management
+function addToRecentlyViewed(index) {
+    const estimateId = estimates[index].id || index;
+    
+    // Remove if already in list
+    const idx = recentlyViewed.indexOf(estimateId);
+    if (idx > -1) {
+        recentlyViewed.splice(idx, 1);
+    }
+    
+    // Add to beginning
+    recentlyViewed.unshift(estimateId);
+    
+    // Keep only MAX_RECENT_ITEMS
+    if (recentlyViewed.length > MAX_RECENT_ITEMS) {
+        recentlyViewed = recentlyViewed.slice(0, MAX_RECENT_ITEMS);
+    }
+    
+    saveRecentlyViewed();
+}
+
+function saveRecentlyViewed() {
+    localStorage.setItem('recently_viewed', JSON.stringify(recentlyViewed));
+}
+
+function loadRecentlyViewed() {
+    const stored = localStorage.getItem('recently_viewed');
+    if (stored) {
+        try {
+            recentlyViewed = JSON.parse(stored);
+        } catch (e) {
+            recentlyViewed = [];
+        }
+    }
+}
+
+// Advanced Export with customization
+function exportToPDF() {
+    if (!currentEstimate) return;
+    
+    // Use browser's print with enhanced styling
+    const originalTitle = document.title;
+    document.title = currentEstimate.title || 'Смета';
+    
+    // Add print-specific styles
+    const printStyle = document.createElement('style');
+    printStyle.id = 'print-styles';
+    printStyle.textContent = `
+        @media print {
+            body { background: white !important; }
+            .toolbar { display: none !important; }
+            header, footer { display: none !important; }
+            .estimate-form { box-shadow: none !important; }
+        }
+    `;
+    document.head.appendChild(printStyle);
+    
+    window.print();
+    
+    // Cleanup
+    document.title = originalTitle;
+    const style = document.getElementById('print-styles');
+    if (style) style.remove();
 }
 
 // Utility Functions
