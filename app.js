@@ -4,6 +4,11 @@ let currentEstimate = null;
 let editingIndex = -1;
 let generatedEstimateData = null;
 
+// PWA State
+let isOnline = navigator.onLine;
+let touchStartY = 0;
+let isPulling = false;
+
 // DOM Elements
 const listView = document.getElementById('listView');
 const editView = document.getElementById('editView');
@@ -18,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeEventListeners();
     renderEstimatesList();
     loadApiKey();
+    initializePWAFeatures();
 });
 
 // Event Listeners
@@ -349,37 +355,80 @@ ${materialsAnalysis}
 }
 
 async function callGeminiAPI(apiKey, prompt) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+    // Use the latest stable model - gemini-1.5-flash is fast and capable
+    // Alternatives: gemini-1.5-pro (more capable but slower), gemini-2.0-flash-exp (experimental)
+    const models = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash-exp'];
     
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            contents: [{
-                parts: [{
-                    text: prompt
-                }]
-            }],
-            generationConfig: {
-                temperature: 0.7,
-                topK: 40,
-                topP: 0.95,
-                maxOutputTokens: 2048,
+    let lastError = null;
+    
+    // Try each model until one works
+    for (const model of models) {
+        try {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+            
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{
+                            text: prompt
+                        }]
+                    }],
+                    generationConfig: {
+                        temperature: 0.7,
+                        topK: 40,
+                        topP: 0.95,
+                        maxOutputTokens: 2048,
+                    }
+                })
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                lastError = errorData.error?.message || 'API request failed';
+                
+                // If it's a model not found error, try the next model
+                if (response.status === 404 || lastError.includes('models/')) {
+                    console.log(`Model ${model} not available, trying next...`);
+                    continue;
+                }
+                
+                // For other errors (like invalid API key), throw immediately
+                throw new Error(lastError);
             }
-        })
-    });
-    
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || 'API request failed');
+            
+            const data = await response.json();
+            
+            // Check if response has the expected structure
+            if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+                throw new Error('Неожиданный формат ответа от API');
+            }
+            
+            const text = data.candidates[0].content.parts[0].text;
+            
+            console.log(`✓ Successfully used model: ${model}`);
+            return text;
+            
+        } catch (error) {
+            lastError = error.message;
+            console.error(`Error with model ${model}:`, error.message);
+            
+            // If it's a network error or API key error, don't try other models
+            if (error.message.includes('API key') || error.message.includes('invalid') || 
+                error.message.includes('network') || error.message.includes('fetch')) {
+                throw error;
+            }
+            
+            // Otherwise, try the next model
+            continue;
+        }
     }
     
-    const data = await response.json();
-    const text = data.candidates[0].content.parts[0].text;
-    
-    return text;
+    // If all models failed
+    throw new Error(`Не удалось подключиться к API Gemini. Последняя ошибка: ${lastError}\n\nПроверьте:\n1. Правильность API ключа\n2. Активацию API ключа на https://makersuite.google.com/app/apikey\n3. Наличие интернет соединения`);
 }
 
 function parseAIResponse(aiResponse) {
@@ -768,4 +817,174 @@ function formatCurrency(amount) {
         currency: 'RUB',
         minimumFractionDigits: 2
     }).format(amount);
+}
+
+// PWA Features
+function initializePWAFeatures() {
+    // Create offline indicator
+    const offlineIndicator = document.createElement('div');
+    offlineIndicator.className = 'offline-indicator';
+    offlineIndicator.textContent = 'Нет подключения к интернету';
+    document.body.appendChild(offlineIndicator);
+    
+    // Online/Offline detection
+    window.addEventListener('online', () => {
+        isOnline = true;
+        offlineIndicator.classList.remove('visible');
+        console.log('✓ Back online');
+    });
+    
+    window.addEventListener('offline', () => {
+        isOnline = false;
+        offlineIndicator.classList.add('visible');
+        console.log('✗ Gone offline');
+    });
+    
+    // Show indicator if starting offline
+    if (!isOnline) {
+        offlineIndicator.classList.add('visible');
+    }
+    
+    // Pull to refresh (mobile only)
+    if (window.innerWidth <= 768) {
+        initializePullToRefresh();
+    }
+    
+    // Add haptic feedback support (for supported devices)
+    if ('vibrate' in navigator) {
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                navigator.vibrate(10); // Short vibration
+            });
+        });
+    }
+    
+    // Prevent accidental navigation away
+    window.addEventListener('beforeunload', (e) => {
+        // Only warn if there's unsaved work
+        if (currentEstimate && document.getElementById('editView').classList.contains('active')) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+    
+    // Handle keyboard appearance on mobile
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        const inputs = document.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                setTimeout(() => {
+                    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 300);
+            });
+        });
+    }
+    
+    console.log('✓ PWA features initialized');
+}
+
+function initializePullToRefresh() {
+    const pullToRefreshEl = document.createElement('div');
+    pullToRefreshEl.className = 'pull-to-refresh';
+    pullToRefreshEl.innerHTML = '↓ Потяните для обновления';
+    document.body.insertBefore(pullToRefreshEl, document.body.firstChild);
+    
+    let startY = 0;
+    let currentY = 0;
+    let pulling = false;
+    
+    document.addEventListener('touchstart', (e) => {
+        if (window.scrollY === 0) {
+            startY = e.touches[0].pageY;
+            pulling = true;
+        }
+    }, { passive: true });
+    
+    document.addEventListener('touchmove', (e) => {
+        if (!pulling) return;
+        
+        currentY = e.touches[0].pageY;
+        const pullDistance = currentY - startY;
+        
+        if (pullDistance > 0 && pullDistance < 100) {
+            pullToRefreshEl.style.transform = `translateY(${pullDistance - 60}px)`;
+            if (pullDistance > 60) {
+                pullToRefreshEl.innerHTML = '↑ Отпустите для обновления';
+            } else {
+                pullToRefreshEl.innerHTML = '↓ Потяните для обновления';
+            }
+        }
+    }, { passive: true });
+    
+    document.addEventListener('touchend', () => {
+        if (!pulling) return;
+        
+        const pullDistance = currentY - startY;
+        
+        if (pullDistance > 60) {
+            pullToRefreshEl.innerHTML = '⟳ Обновление...';
+            pullToRefreshEl.classList.add('visible');
+            
+            // Refresh the data
+            setTimeout(() => {
+                renderEstimatesList();
+                pullToRefreshEl.classList.remove('visible');
+                pullToRefreshEl.style.transform = 'translateY(-100%)';
+                
+                // Haptic feedback
+                if ('vibrate' in navigator) {
+                    navigator.vibrate(50);
+                }
+            }, 1000);
+        } else {
+            pullToRefreshEl.style.transform = 'translateY(-100%)';
+        }
+        
+        pulling = false;
+        startY = 0;
+        currentY = 0;
+    }, { passive: true });
+}
+
+// Enhanced button feedback for mobile
+if ('ontouchstart' in window) {
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.btn, .estimate-card').forEach(element => {
+            element.addEventListener('touchstart', function() {
+                this.style.transition = 'transform 0.1s';
+                this.style.transform = 'scale(0.95)';
+            }, { passive: true });
+            
+            element.addEventListener('touchend', function() {
+                this.style.transform = 'scale(1)';
+            }, { passive: true });
+        });
+    });
+}
+
+// Service Worker communication
+if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    // Listen for messages from service worker
+    navigator.serviceWorker.addEventListener('message', event => {
+        if (event.data.type === 'UPDATE_AVAILABLE') {
+            const updateBanner = document.createElement('div');
+            updateBanner.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: linear-gradient(135deg, #10b981, #059669);
+                color: white;
+                padding: 15px 30px;
+                border-radius: 30px;
+                box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+                z-index: 10000;
+                font-weight: 600;
+                cursor: pointer;
+            `;
+            updateBanner.textContent = '🎉 Доступно обновление! Нажмите для установки';
+            updateBanner.onclick = () => window.location.reload();
+            document.body.appendChild(updateBanner);
+        }
+    });
 }
