@@ -17,15 +17,63 @@
             <!-- List View -->
             <div id="listView" class="view active">
                 <div class="toolbar">
-                    <button id="createNewBtn" class="btn btn-primary">
-                        ➕ Создать новую смету
+                    <button id="createWithAiBtn" class="btn btn-primary">
+                        🤖 Создать с помощью ИИ
+                    </button>
+                    <button id="createManualBtn" class="btn btn-secondary">
+                        ➕ Создать вручную
                     </button>
                 </div>
                 
                 <div id="estimatesList" class="estimates-list">
                     <div class="empty-state">
                         <p>📄 Нет сохраненных смет</p>
-                        <p class="help-text">Нажмите "Создать новую смету" чтобы начать</p>
+                        <p class="help-text">Используйте ИИ для быстрого создания или создайте вручную</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Generation View -->
+            <div id="aiView" class="view">
+                <div class="toolbar">
+                    <button id="backFromAiBtn" class="btn">← Назад к списку</button>
+                </div>
+
+                <div class="ai-form">
+                    <div class="ai-header">
+                        <h2>🤖 ИИ Генератор смет</h2>
+                        <p class="ai-description">Опишите работы и объект измерения, и ИИ создаст смету с материалами и работами по российским нормам</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="aiApiKey">API ключ Gemini:</label>
+                        <input type="password" id="aiApiKey" class="form-control" placeholder="Введите ваш API ключ Google Gemini">
+                        <small class="help-text">Получите бесплатный ключ на <a href="https://makersuite.google.com/app/apikey" target="_blank">makersuite.google.com</a></small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="aiDescription">Описание объекта и работ:</label>
+                        <textarea id="aiDescription" class="form-control" rows="6" placeholder="Пример: Ремонт 2-комнатной квартиры 52 кв.м., необходимо выровнять стены штукатуркой, покрасить стены и потолки, уложить ламинат в комнатах и плитку в ванной"></textarea>
+                    </div>
+
+                    <div class="ai-controls">
+                        <button id="generateEstimateBtn" class="btn btn-success btn-large">
+                            ✨ Сгенерировать смету
+                        </button>
+                    </div>
+
+                    <div id="aiStatus" class="ai-status" style="display: none;">
+                        <div class="loading-spinner"></div>
+                        <p class="status-text">Генерация сметы...</p>
+                    </div>
+
+                    <div id="aiResult" class="ai-result" style="display: none;">
+                        <h3>Сгенерированная смета</h3>
+                        <div id="aiResultContent"></div>
+                        <div class="ai-actions">
+                            <button id="acceptAiBtn" class="btn btn-success">✓ Принять и редактировать</button>
+                            <button id="regenerateBtn" class="btn btn-secondary">🔄 Сгенерировать заново</button>
+                        </div>
                     </div>
                 </div>
             </div>
