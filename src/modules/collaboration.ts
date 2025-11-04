@@ -3,6 +3,8 @@
  * Enables multi-user editing with WebRTC and conflict resolution
  */
 
+import { logger } from '../utils/logger';
+
 export interface CollaboratorInfo {
   id: string;
   name: string;
@@ -57,7 +59,7 @@ export class CollaborationManager {
       this.webSocket = new WebSocket(wsUrl);
 
       this.webSocket.onopen = () => {
-        console.log('✅ Collaboration connection established');
+        logger.success('Collaboration connection established');
         this.reconnectAttempts = 0;
         this.sendHeartbeat();
       };
@@ -67,15 +69,15 @@ export class CollaborationManager {
       };
 
       this.webSocket.onerror = error => {
-        console.error('❌ WebSocket error:', error);
+        logger.error('WebSocket error:', error);
       };
 
       this.webSocket.onclose = () => {
-        console.log('🔌 WebSocket closed, attempting reconnect...');
+        logger.info('WebSocket closed, attempting reconnect...');
         this.attemptReconnect();
       };
     } catch (error) {
-      console.warn('WebSocket not available, using fallback mode');
+      logger.warn('WebSocket not available, using fallback mode');
       this.useFallbackMode();
     }
   }
@@ -96,7 +98,7 @@ export class CollaborationManager {
       this.reconnectAttempts++;
       const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
 
-      console.log(
+      logger.info(
         `Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`
       );
 
@@ -104,7 +106,7 @@ export class CollaborationManager {
         this.initializeWebSocket();
       }, delay);
     } else {
-      console.error('Max reconnection attempts reached. Switching to offline mode.');
+      logger.error('Max reconnection attempts reached. Switching to offline mode.');
       this.useFallbackMode();
     }
   }
@@ -114,7 +116,7 @@ export class CollaborationManager {
    */
   private useFallbackMode(): void {
     // Store changes locally and sync when connection is restored
-    console.log('📴 Operating in offline mode');
+    logger.info('Operating in offline mode');
     // Implement polling or other fallback strategy
   }
 
@@ -247,7 +249,7 @@ export class CollaborationManager {
       conflicts.forEach(c => (c.applied = true));
     } else {
       // Local change is newer, keep it
-      console.log('Conflict resolved: keeping local changes');
+      logger.debug('Conflict resolved: keeping local changes');
     }
   }
 
@@ -416,7 +418,7 @@ export class CollaborationManager {
     const now = new Date();
     const timeout = 60000; // 1 minute
 
-    this.collaborators.forEach((collaborator, id) => {
+    this.collaborators.forEach((collaborator, _id) => {
       if (now.getTime() - collaborator.lastSeen.getTime() > timeout) {
         collaborator.isOnline = false;
       }

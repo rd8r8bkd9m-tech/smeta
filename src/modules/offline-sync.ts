@@ -4,6 +4,7 @@
  */
 
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
+import { logger } from '../utils/logger';
 
 interface SmetaDB extends DBSchema {
   estimates: {
@@ -50,7 +51,7 @@ export class OfflineSyncManager {
   private async initializeDB(): Promise<void> {
     try {
       this.db = await openDB<SmetaDB>('smeta-offline', 3, {
-        upgrade(db, oldVersion, newVersion, transaction) {
+        upgrade(db, _oldVersion, _newVersion, _transaction) {
           // Create estimates store
           if (!db.objectStoreNames.contains('estimates')) {
             const estimatesStore = db.createObjectStore('estimates', {
@@ -75,9 +76,9 @@ export class OfflineSyncManager {
         },
       });
 
-      console.log('✅ IndexedDB initialized');
+      logger.success('IndexedDB initialized');
     } catch (error) {
-      console.error('❌ Failed to initialize IndexedDB:', error);
+      logger.error('Failed to initialize IndexedDB:', error);
     }
   }
 
@@ -189,7 +190,7 @@ export class OfflineSyncManager {
           await this.syncItem(item);
           await this.db.delete('sync_queue', item.id);
         } catch (error) {
-          console.error('Failed to sync item:', error);
+          logger.error('Failed to sync item:', error);
 
           // Increment retry count
           item.retries++;
@@ -198,7 +199,7 @@ export class OfflineSyncManager {
             await this.db.put('sync_queue', item);
           } else {
             // Max retries reached, move to failed queue
-            console.error('Max retries reached for sync item:', item);
+            logger.error('Max retries reached for sync item:', item);
             await this.db.delete('sync_queue', item.id);
           }
         }
@@ -215,7 +216,7 @@ export class OfflineSyncManager {
     // Mock implementation - in production, this would call actual API
     return new Promise(resolve => {
       setTimeout(() => {
-        console.log(`✅ Synced ${item.action} for ${item.data.id}`);
+        logger.success(`Synced ${item.action} for ${item.data.id}`);
         resolve();
       }, 100);
     });
@@ -227,13 +228,13 @@ export class OfflineSyncManager {
   private setupBackgroundSync(): void {
     // Listen for online event
     window.addEventListener('online', () => {
-      console.log('🌐 Back online, syncing...');
+      logger.info('Back online, syncing...');
       this.processSyncQueue();
     });
 
     // Listen for offline event
     window.addEventListener('offline', () => {
-      console.log('📴 Offline mode activated');
+      logger.info('Offline mode activated');
     });
 
     // Periodic sync every 5 minutes
@@ -254,15 +255,15 @@ export class OfflineSyncManager {
     if ('serviceWorker' in navigator) {
       try {
         const registration = await navigator.serviceWorker.register('/sw.js');
-        console.log('✅ Service Worker registered:', registration);
+        logger.success('Service Worker registered:', registration);
 
         // Request background sync if supported
         if ('sync' in registration) {
           await registration.sync.register('sync-estimates');
-          console.log('✅ Background sync registered');
+          logger.success('Background sync registered');
         }
       } catch (error) {
-        console.error('❌ Service Worker registration failed:', error);
+        logger.error('Service Worker registration failed:', error);
       }
     }
   }
@@ -343,7 +344,7 @@ export class OfflineSyncManager {
         await this.db.put('estimates', estimate);
       }
 
-      console.log(`✅ Imported ${data.estimates.length} estimates`);
+      logger.success(`Imported ${data.estimates.length} estimates`);
     }
   }
 
@@ -377,7 +378,7 @@ export class OfflineSyncManager {
       await this.db.clear('estimates');
       await this.db.clear('sync_queue');
       await this.db.clear('attachments');
-      console.log('✅ All local data cleared');
+      logger.success('All local data cleared');
     }
   }
 
