@@ -249,15 +249,15 @@ export class AIEngine {
 
     if (lowerQuery.includes('клиент')) {
       const clientName = this.extractClientName(query);
-      return estimates.filter(e => e.client.toLowerCase().includes(clientName));
+      return estimates.filter(e => e.client?.toLowerCase().includes(clientName));
     }
 
     // Default: full text search
     return estimates.filter(
       e =>
         e.title.toLowerCase().includes(lowerQuery) ||
-        e.client.toLowerCase().includes(lowerQuery) ||
-        e.project.toLowerCase().includes(lowerQuery)
+        e.client?.toLowerCase().includes(lowerQuery) ||
+        e.project?.toLowerCase().includes(lowerQuery)
     );
   }
 
