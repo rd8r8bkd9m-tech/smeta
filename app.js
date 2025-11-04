@@ -1175,8 +1175,10 @@ function addItemRow(itemData = null) {
     const row = document.createElement('div');
     row.className = 'item-row';
     row.dataset.itemId = itemId;
+    row.draggable = true; // Enable drag and drop
     
     row.innerHTML = `
+        <div class="drag-handle" title="Перетащите для изменения порядка">⋮⋮</div>
         <div class="form-group">
             <label>Наименование работ/материалов:</label>
             <input type="text" class="form-control item-description" value="${item.description || ''}" placeholder="Описание позиции">
@@ -1211,6 +1213,9 @@ function addItemRow(itemData = null) {
     
     itemsContainer.appendChild(row);
     
+    // Setup drag and drop
+    setupDragAndDrop(row);
+    
     // Add event listeners for calculation
     row.querySelectorAll('.item-quantity, .item-price, .item-description, .item-unit').forEach(input => {
         input.addEventListener('input', () => {
@@ -1233,6 +1238,93 @@ function addItemRow(itemData = null) {
         row.remove();
         calculateTotal();
     });
+}
+
+// Drag and Drop Functionality
+let draggedElement = null;
+
+function setupDragAndDrop(row) {
+    row.addEventListener('dragstart', handleDragStart);
+    row.addEventListener('dragend', handleDragEnd);
+    row.addEventListener('dragover', handleDragOver);
+    row.addEventListener('drop', handleDrop);
+    row.addEventListener('dragenter', handleDragEnter);
+    row.addEventListener('dragleave', handleDragLeave);
+}
+
+function handleDragStart(e) {
+    draggedElement = this;
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', this.innerHTML);
+    
+    // Haptic feedback
+    if ('vibrate' in navigator) {
+        navigator.vibrate(10);
+    }
+}
+
+function handleDragEnd(e) {
+    this.classList.remove('dragging');
+    
+    // Remove all drag-over classes
+    document.querySelectorAll('.item-row').forEach(row => {
+        row.classList.remove('drag-over');
+    });
+    
+    draggedElement = null;
+    
+    // Save state after reordering
+    saveStateToUndo();
+    
+    // Haptic feedback
+    if ('vibrate' in navigator) {
+        navigator.vibrate(10);
+    }
+}
+
+function handleDragOver(e) {
+    if (e.preventDefault) {
+        e.preventDefault();
+    }
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+}
+
+function handleDragEnter(e) {
+    if (this !== draggedElement) {
+        this.classList.add('drag-over');
+    }
+}
+
+function handleDragLeave(e) {
+    this.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+    if (e.stopPropagation) {
+        e.stopPropagation();
+    }
+    
+    if (draggedElement !== this) {
+        // Get the parent container
+        const container = this.parentNode;
+        
+        // Determine drop position
+        const allRows = Array.from(container.querySelectorAll('.item-row'));
+        const draggedIndex = allRows.indexOf(draggedElement);
+        const droppedIndex = allRows.indexOf(this);
+        
+        if (draggedIndex < droppedIndex) {
+            // Moving down
+            container.insertBefore(draggedElement, this.nextSibling);
+        } else {
+            // Moving up
+            container.insertBefore(draggedElement, this);
+        }
+    }
+    
+    return false;
 }
 
 function updateItemTotal(row) {
