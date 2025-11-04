@@ -1434,6 +1434,19 @@ footer {
 }
 
 /* Comparison Checkbox */
+.bulk-select-checkbox {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+}
+
+.bulk-select-checkbox input[type="checkbox"] {
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    accent-color: var(--danger-color);
+}
+
 .comparison-checkbox {
     position: absolute;
     top: 16px;

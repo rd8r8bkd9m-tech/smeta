@@ -27,6 +27,7 @@ let sortOrder = 'desc'; // asc, desc
 
 // Advanced Features State
 let selectedEstimatesForComparison = []; // Multiple estimate comparison
+let selectedEstimatesForBulk = []; // Bulk operations selection
 let favorites = []; // Favorite estimates
 let recentlyViewed = []; // Recently viewed estimates
 let notifications = []; // System notifications
@@ -82,6 +83,10 @@ function initializeEventListeners() {
     document.getElementById('compareEstimatesBtn').addEventListener('click', compareEstimates);
     document.getElementById('closeDashboardBtn').addEventListener('click', showListView);
     document.getElementById('closeTemplatesBtn').addEventListener('click', showListView);
+    
+    // Bulk operations
+    document.getElementById('selectAllBtn').addEventListener('click', toggleSelectAll);
+    document.getElementById('bulkDeleteBtn').addEventListener('click', bulkDelete);
     
     // Estimate actions
     document.getElementById('saveEstimateBtn').addEventListener('click', saveCurrentEstimate);
@@ -822,16 +827,24 @@ function renderEstimatesList() {
         const originalIndex = estimates.indexOf(estimate);
         const estimateId = estimate.id || originalIndex;
         const isFavorite = favorites.includes(estimateId);
-        const isSelected = selectedEstimatesForComparison.includes(estimateId);
+        const isSelectedForComparison = selectedEstimatesForComparison.includes(estimateId);
+        const isSelectedForBulk = selectedEstimatesForBulk.includes(originalIndex);
         const isRecent = recentlyViewed.includes(estimateId);
         
         return `
         <div class="estimate-card" data-index="${originalIndex}">
+            <div class="bulk-select-checkbox">
+                <input type="checkbox" 
+                       class="bulk-select" 
+                       data-index="${originalIndex}" 
+                       ${isSelectedForBulk ? 'checked' : ''}
+                       title="Выбрать для операций">
+            </div>
             <div class="comparison-checkbox">
                 <input type="checkbox" 
                        class="compare-check" 
                        data-index="${originalIndex}" 
-                       ${isSelected ? 'checked' : ''}
+                       ${isSelectedForComparison ? 'checked' : ''}
                        title="Выбрать для сравнения">
             </div>
             <h3>
@@ -866,7 +879,15 @@ function renderEstimatesList() {
     // Add click handlers to cards
     document.querySelectorAll('.estimate-card').forEach(card => {
         card.addEventListener('click', (e) => {
-            // Check if it's a checkbox
+            // Check if it's a bulk checkbox
+            if (e.target.classList.contains('bulk-select')) {
+                e.stopPropagation();
+                const index = parseInt(e.target.dataset.index);
+                toggleBulkSelection(index);
+                return;
+            }
+            
+            // Check if it's a comparison checkbox
             if (e.target.classList.contains('compare-check')) {
                 e.stopPropagation();
                 const index = parseInt(e.target.dataset.index);
@@ -2558,6 +2579,75 @@ function detectMacPlatform() {
     }
     // Fallback to deprecated but widely supported API
     return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+}
+
+// Bulk Operations
+function toggleSelectAll() {
+    const checkboxes = document.querySelectorAll('.bulk-select');
+    const allChecked = selectedEstimatesForBulk.length === estimates.length;
+    
+    if (allChecked) {
+        // Deselect all
+        selectedEstimatesForBulk = [];
+        checkboxes.forEach(cb => cb.checked = false);
+    } else {
+        // Select all
+        selectedEstimatesForBulk = estimates.map((_, index) => index);
+        checkboxes.forEach(cb => cb.checked = true);
+    }
+    
+    updateBulkButtons();
+}
+
+function toggleBulkSelection(index) {
+    const idx = selectedEstimatesForBulk.indexOf(index);
+    
+    if (idx > -1) {
+        selectedEstimatesForBulk.splice(idx, 1);
+    } else {
+        selectedEstimatesForBulk.push(index);
+    }
+    
+    updateBulkButtons();
+}
+
+function updateBulkButtons() {
+    const count = selectedEstimatesForBulk.length;
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    const selectAllBtn = document.getElementById('selectAllBtn');
+    const selectedCountSpan = document.getElementById('selectedCount');
+    
+    if (selectedCountSpan) {
+        selectedCountSpan.textContent = count;
+    }
+    
+    if (bulkDeleteBtn) {
+        bulkDeleteBtn.disabled = count === 0;
+    }
+    
+    if (selectAllBtn) {
+        selectAllBtn.textContent = count === estimates.length ? '☐ Снять выделение' : '☑️ Выбрать все';
+    }
+}
+
+function bulkDelete() {
+    if (selectedEstimatesForBulk.length === 0) return;
+    
+    const count = selectedEstimatesForBulk.length;
+    if (confirm(`Вы уверены, что хотите удалить ${count} ${count === 1 ? 'смету' : 'смет'}?`)) {
+        // Sort indices in descending order to delete from end to start
+        const sortedIndices = [...selectedEstimatesForBulk].sort((a, b) => b - a);
+        
+        sortedIndices.forEach(index => {
+            estimates.splice(index, 1);
+        });
+        
+        saveEstimates();
+        selectedEstimatesForBulk = [];
+        renderEstimatesList();
+        
+        showNotification(`✅ Удалено ${count} ${count === 1 ? 'смета' : 'смет'}`, 'success');
+    }
 }
 
 // Undo/Redo Functionality
