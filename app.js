@@ -54,6 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadApiKey();
     initializePWAFeatures();
     initializeEnterpriseFeatures();
+    initializeDarkMode();
 });
 
 // Event Listeners
@@ -1996,4 +1997,48 @@ if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
             document.body.appendChild(updateBanner);
         }
     });
+}
+
+// Dark Mode Functions
+function initializeDarkMode() {
+    const themeToggle = document.getElementById('themeToggle');
+    if (!themeToggle) return;
+    
+    // Load saved theme preference
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    setTheme(savedTheme);
+    
+    // Add click handler
+    themeToggle.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        setTheme(newTheme);
+        
+        // Haptic feedback
+        if ('vibrate' in navigator) {
+            navigator.vibrate(10);
+        }
+    });
+    
+    console.log('✓ Dark mode initialized');
+}
+
+function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+    
+    // Update toggle icon
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        const icon = themeToggle.querySelector('.theme-icon');
+        if (icon) {
+            icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+        }
+    }
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
 }

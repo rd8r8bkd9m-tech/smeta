@@ -23,6 +23,36 @@
     --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 }
 
+/* Dark Mode */
+[data-theme="dark"] {
+    --primary-color: #60a5fa;
+    --primary-dark: #3b82f6;
+    --primary-light: #93c5fd;
+    --secondary-color: #a78bfa;
+    --success-color: #34d399;
+    --success-dark: #10b981;
+    --danger-color: #f87171;
+    --warning-color: #fbbf24;
+    --background: #0f172a;
+    --background-alt: #1e293b;
+    --surface: #1e293b;
+    --surface-hover: #334155;
+    --border: #334155;
+    --border-light: #475569;
+    --text: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --text-light: #94a3b8;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.5), 0 1px 2px -1px rgb(0 0 0 / 0.5);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.5);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.5);
+}
+
+[data-theme="dark"] body {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -1462,5 +1492,74 @@ footer {
     
     .view {
         padding: 0 !important;
+    }
+}
+
+/* Dark Mode Toggle */
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 50px;
+    padding: 8px 16px;
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.theme-toggle:hover {
+    transform: scale(1.05);
+    box-shadow: var(--shadow-xl);
+}
+
+.theme-toggle:active {
+    transform: scale(0.95);
+}
+
+.theme-icon {
+    font-size: 1.4rem;
+    transition: transform 0.3s ease;
+}
+
+.theme-toggle:hover .theme-icon {
+    transform: rotate(20deg);
+}
+
+[data-theme="dark"] .theme-toggle {
+    background: var(--surface);
+}
+
+/* Smooth theme transition */
+body,
+.container,
+header,
+main,
+.view,
+.btn,
+.form-control,
+.estimate-card,
+.stat-card,
+.template-card {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    .theme-toggle {
+        top: 10px;
+        right: 10px;
+        padding: 6px 12px;
+        font-size: 1rem;
+    }
+    
+    .theme-icon {
+        font-size: 1.2rem;
     }
 }
