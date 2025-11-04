@@ -6,6 +6,7 @@
     --success-color: #10b981;
     --success-dark: #059669;
     --danger-color: #ef4444;
+    --danger-dark: #dc2626;
     --warning-color: #f59e0b;
     --background: #f8fafc;
     --background-alt: #f1f5f9;
@@ -197,7 +198,7 @@ main {
 }
 
 .btn-danger:hover {
-    background: #dc2626;
+    background: var(--danger-dark);
 }
 
 .btn-small {
@@ -333,6 +334,10 @@ main {
     outline: none;
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-control:hover {
+    border-color: var(--primary-light);
 }
 
 .line-items h3 {
