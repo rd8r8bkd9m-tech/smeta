@@ -7,6 +7,14 @@ const TEST_API_KEY = 'AIzaSyAb8RN6KlteMjDAglrWK7cJZBcFVZPaRnZ3dDUpmnhY8eRmXFBg';
 let chatHistory = [];
 let isGeneratingEstimate = false;
 let currentEstimateData = {};
+let isSoundEnabled = true;
+let typingTimeout = null;
+
+// Sound effects
+const sounds = {
+  sent: new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBjGJ0fPTgjMGHm7A7+OZSA0PVajk7rdfGwg+lcnyv3IlBSl+y/DajT0KFmG36+WcSg0PW63o6q1aFws8k9X1xXkpBSd7x+7al0IJFV+37+ScTQwPWq/o6KxaFws7k9X1xXkpBSd7x+7al0IJFV+37+ScTQwP'),
+  received: new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBjGJ0fPTgjMGHm7A7+OZSA0PVajk7rdfGwg+lcnyv3IlBSl+y/DajT0KFmG36+WcSg0PW63o6q1aFws8k9X1xXkpBSd7x+7al0IJFV+37+ScTQwPWq/o6KxaFws7k9X1xXkpBSd7x+7al0IJFV+37+ScTQwP')
+};
 
 // Wait for DOM to be ready
 document.addEventListener('DOMContentLoaded', function() {
@@ -16,6 +24,12 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Load chat history from localStorage
   loadChatHistory();
+  
+  // Initialize sound toggle
+  initSoundToggle();
+  
+  // Initialize emoji picker
+  initEmojiPicker();
   
   // Auto-resize textarea
   if (messageInput) {
@@ -60,10 +74,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (shouldGenerateEstimate(text)) {
       generateEstimateWithAI(text);
     } else {
+      // Show typing indicator before bot response
+      showTypingIndicator(true);
+      
       // Simulate bot response after delay
       setTimeout(() => {
+        showTypingIndicator(false);
         respondToMessage(text);
-      }, 1000);
+      }, 1500);
     }
   }
   
@@ -327,4 +345,181 @@ document.addEventListener('DOMContentLoaded', function() {
       chatsSidebar.classList.toggle('show');
     });
   }
+  
+  // Typing indicator when user is typing
+  if (messageInput) {
+    messageInput.addEventListener('input', function() {
+      showTypingIndicator(false); // User typing, hide bot typing
+    });
+  }
+  
+  // Initialize sound toggle
+  function initSoundToggle() {
+    const soundEnabled = localStorage.getItem('soundEnabled');
+    if (soundEnabled !== null) {
+      isSoundEnabled = soundEnabled === 'true';
+    }
+    
+    // Create sound toggle button
+    const soundToggle = document.createElement('button');
+    soundToggle.className = 'sound-toggle' + (isSoundEnabled ? '' : ' muted');
+    soundToggle.innerHTML = isSoundEnabled ? '🔔' : '🔕';
+    soundToggle.title = isSoundEnabled ? 'Выключить звук' : 'Включить звук';
+    soundToggle.addEventListener('click', function() {
+      isSoundEnabled = !isSoundEnabled;
+      localStorage.setItem('soundEnabled', isSoundEnabled);
+      this.className = 'sound-toggle' + (isSoundEnabled ? '' : ' muted');
+      this.innerHTML = isSoundEnabled ? '🔔' : '🔕';
+      this.title = isSoundEnabled ? 'Выключить звук' : 'Включить звук';
+    });
+    document.body.appendChild(soundToggle);
+  }
+  
+  // Initialize emoji picker
+  function initEmojiPicker() {
+    const emojis = ['😊', '😂', '❤️', '👍', '👎', '🔥', '💯', '🎉', '🤔', '😍', '😢', '😮', '👏', '🙏', '💪', '✅', '❌', '⭐', '💰', '🏗️', '📐', '🔨', '📦', '📋', '📊', '🏠', '🏡', '🏢', '🏗', '🔧', '⚙️', '📝'];
+    
+    // Create emoji picker element
+    const emojiPicker = document.createElement('div');
+    emojiPicker.className = 'emoji-picker';
+    emojiPicker.innerHTML = `
+      <div class="emoji-picker-header">Выберите эмодзи</div>
+      <div class="emoji-picker-body"></div>
+    `;
+    
+    const emojiBody = emojiPicker.querySelector('.emoji-picker-body');
+    emojis.forEach(emoji => {
+      const emojiItem = document.createElement('div');
+      emojiItem.className = 'emoji-item';
+      emojiItem.textContent = emoji;
+      emojiItem.addEventListener('click', function() {
+        messageInput.value += emoji;
+        messageInput.focus();
+        emojiPicker.classList.remove('show');
+      });
+      emojiBody.appendChild(emojiItem);
+    });
+    
+    document.body.appendChild(emojiPicker);
+    
+    // Emoji button toggle
+    const emojiBtn = document.querySelector('.emoji-btn');
+    if (emojiBtn) {
+      emojiBtn.addEventListener('click', function() {
+        emojiPicker.classList.toggle('show');
+      });
+    }
+    
+    // Close emoji picker when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!emojiPicker.contains(e.target) && !emojiBtn.contains(e.target)) {
+        emojiPicker.classList.remove('show');
+      }
+    });
+  }
+  
+  // Play sound notification
+  function playSound(type) {
+    if (isSoundEnabled && sounds[type]) {
+      sounds[type].play().catch(e => console.log('Sound play failed:', e));
+    }
+  }
+  
+  // Show typing indicator
+  function showTypingIndicator(show = true) {
+    const existingIndicator = messagesContainer.querySelector('.typing-indicator');
+    
+    if (show && !existingIndicator) {
+      const indicator = document.createElement('div');
+      indicator.className = 'message incoming';
+      indicator.innerHTML = `
+        <div class="message-avatar bot">🤖</div>
+        <div class="typing-indicator">
+          <div class="typing-dots">
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+          </div>
+        </div>
+      `;
+      messagesContainer.appendChild(indicator);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    } else if (!show && existingIndicator) {
+      existingIndicator.parentElement.remove();
+    }
+  }
+  
+  // Add read receipts to message
+  function addReadReceipt(messageElement, status = 'sent') {
+    const timestamp = messageElement.querySelector('.message-timestamp');
+    if (timestamp) {
+      let statusHtml = '';
+      if (status === 'sent') {
+        statusHtml = '<span class="message-status"><span class="checkmark">✓</span></span>';
+      } else if (status === 'delivered') {
+        statusHtml = '<span class="message-status"><span class="checkmark double">✓</span></span>';
+      } else if (status === 'read') {
+        statusHtml = '<span class="message-status read"><span class="checkmark double">✓</span></span>';
+      }
+      timestamp.innerHTML += statusHtml;
+    }
+  }
 });
+
+// Enhanced addMessage function with receipts
+const originalAddMessage = window.addMessage;
+window.addMessage = function(text, type, avatar) {
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `message ${type}`;
+  
+  const avatarDiv = document.createElement('div');
+  avatarDiv.className = type === 'incoming' ? 'message-avatar bot' : 'message-avatar';
+  avatarDiv.textContent = avatar;
+  
+  const bubbleDiv = document.createElement('div');
+  bubbleDiv.className = 'message-bubble';
+  
+  if (type === 'incoming') {
+    const senderDiv = document.createElement('div');
+    senderDiv.className = 'message-sender';
+    senderDiv.textContent = 'Виртуальная фирма';
+    bubbleDiv.appendChild(senderDiv);
+  }
+  
+  const textDiv = document.createElement('div');
+  textDiv.className = 'message-text';
+  textDiv.innerHTML = text.split('\n').map(line => `<p>${line}</p>`).join('');
+  bubbleDiv.appendChild(textDiv);
+  
+  const timeDiv = document.createElement('div');
+  timeDiv.className = 'message-timestamp';
+  timeDiv.textContent = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+  bubbleDiv.appendChild(timeDiv);
+  
+  messageDiv.appendChild(avatarDiv);
+  messageDiv.appendChild(bubbleDiv);
+  
+  const messagesContainer = document.getElementById('messages');
+  messagesContainer.appendChild(messageDiv);
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  
+  // Play sound
+  if (type === 'incoming') {
+    playSound('received');
+    // Simulate read receipt after 1 second
+    setTimeout(() => {
+      addReadReceipt(messageDiv, 'read');
+    }, 1000);
+  } else {
+    playSound('sent');
+    // Simulate delivery
+    setTimeout(() => {
+      addReadReceipt(messageDiv, 'sent');
+      setTimeout(() => {
+        addReadReceipt(messageDiv, 'delivered');
+      }, 500);
+    }, 100);
+  }
+  
+  return messageDiv;
+};
