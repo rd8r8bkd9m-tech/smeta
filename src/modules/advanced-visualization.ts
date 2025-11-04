@@ -207,7 +207,8 @@ export class AdvancedVisualization {
 
     // Calculate node positions
     const nodeWidth = 20;
-    const nodeSpacing = 10;
+    // Note: nodeSpacing reserved for future layout improvements
+    // const nodeSpacing = 10;
     const totalValue = links.reduce((sum, link) => sum + link.value, 0);
 
     // Simple layout: arrange nodes in columns
@@ -348,7 +349,8 @@ export class AdvancedVisualization {
     let currentX = margin.left;
     let currentY = margin.top;
     let rowHeight = 0;
-    const rowWidth = 0;
+    // Note: rowWidth reserved for future layout improvements
+    // const rowWidth = 0;
 
     data.forEach((item, index) => {
       const ratio = item.value / totalValue;
