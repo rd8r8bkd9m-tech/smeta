@@ -222,9 +222,11 @@ main {
 }
 
 .empty-state p:first-child {
-    font-size: 4rem;
+    font-size: 2rem;
     margin-bottom: 20px;
     animation: float 3s ease-in-out infinite;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 @keyframes float {
