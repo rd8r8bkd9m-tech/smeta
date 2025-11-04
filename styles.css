@@ -1745,7 +1745,8 @@ main,
 }
 
 /* Auto-save Indicator */
-.auto-save-indicator {
+.auto-save-indicator,
+.notification {
     position: fixed;
     bottom: 80px;
     right: 20px;
@@ -1762,7 +1763,26 @@ main,
     transition: all 0.3s ease;
 }
 
-.auto-save-indicator.visible {
+.notification {
+    bottom: 100px;
+    min-width: 250px;
+    text-align: center;
+}
+
+.notification-success {
+    background: linear-gradient(135deg, var(--success-color), var(--success-dark));
+}
+
+.notification-error {
+    background: linear-gradient(135deg, var(--danger-color), #dc2626);
+}
+
+.notification-info {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+}
+
+.auto-save-indicator.visible,
+.notification.visible {
     opacity: 1;
     transform: translateY(0);
 }

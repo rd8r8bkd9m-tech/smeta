@@ -1396,7 +1396,263 @@ function saveCurrentEstimate() {
 }
 
 function exportEstimate() {
-    window.print();
+    // Enhanced print with custom styling
+    const printWindow = window.open('', '_blank');
+    const estimate = currentEstimate;
+    
+    if (!estimate) {
+        alert('Нет сметы для экспорта');
+        return;
+    }
+    
+    // Generate professional HTML for printing
+    const printContent = generatePrintHTML(estimate);
+    
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    
+    // Trigger print after content loads
+    printWindow.onload = () => {
+        printWindow.focus();
+        printWindow.print();
+    };
+}
+
+function generatePrintHTML(estimate) {
+    const itemsHTML = estimate.items.map((item, index) => {
+        const total = item.quantity * item.price;
+        return `
+            <tr>
+                <td style="text-align: center;">${index + 1}</td>
+                <td>${item.description}</td>
+                <td style="text-align: center;">${item.unit}</td>
+                <td style="text-align: right;">${formatNumber(item.quantity)}</td>
+                <td style="text-align: right;">${formatCurrency(item.price)}</td>
+                <td style="text-align: right; font-weight: 600;">${formatCurrency(total)}</td>
+            </tr>
+        `;
+    }).join('');
+    
+    const grandTotal = estimate.items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+    const currentDate = new Date().toLocaleDateString('ru-RU');
+    
+    return `
+        <!DOCTYPE html>
+        <html lang="ru">
+        <head>
+            <meta charset="UTF-8">
+            <title>${estimate.title || 'Смета'}</title>
+            <style>
+                @media print {
+                    @page { margin: 2cm; }
+                    body { margin: 0; }
+                }
+                
+                body {
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    color: #333;
+                    line-height: 1.6;
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    padding: 20px;
+                }
+                
+                .header {
+                    text-align: center;
+                    margin-bottom: 40px;
+                    padding-bottom: 20px;
+                    border-bottom: 3px solid #3b82f6;
+                }
+                
+                .header h1 {
+                    color: #3b82f6;
+                    margin: 0 0 10px 0;
+                    font-size: 28px;
+                }
+                
+                .header-info {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 20px;
+                    text-align: left;
+                    margin: 30px 0;
+                    padding: 20px;
+                    background: #f8fafc;
+                    border-radius: 8px;
+                }
+                
+                .info-item {
+                    margin: 5px 0;
+                }
+                
+                .info-label {
+                    font-weight: 600;
+                    color: #64748b;
+                    display: inline-block;
+                    min-width: 100px;
+                }
+                
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 20px 0;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }
+                
+                th {
+                    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+                    color: white;
+                    padding: 12px;
+                    text-align: left;
+                    font-weight: 600;
+                    font-size: 14px;
+                }
+                
+                td {
+                    padding: 10px 12px;
+                    border-bottom: 1px solid #e2e8f0;
+                }
+                
+                tr:nth-child(even) {
+                    background: #f8fafc;
+                }
+                
+                tr:hover {
+                    background: #f1f5f9;
+                }
+                
+                .total-section {
+                    margin-top: 30px;
+                    text-align: right;
+                }
+                
+                .total-row {
+                    display: flex;
+                    justify-content: flex-end;
+                    align-items: center;
+                    gap: 20px;
+                    padding: 15px 20px;
+                    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+                    border-radius: 8px;
+                    margin: 10px 0;
+                }
+                
+                .total-label {
+                    font-size: 18px;
+                    font-weight: 600;
+                    color: #475569;
+                }
+                
+                .total-value {
+                    font-size: 24px;
+                    font-weight: 700;
+                    color: #3b82f6;
+                }
+                
+                .footer {
+                    margin-top: 50px;
+                    padding-top: 20px;
+                    border-top: 2px solid #e2e8f0;
+                    text-align: center;
+                    color: #64748b;
+                    font-size: 12px;
+                }
+                
+                .signature-section {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 40px;
+                    margin-top: 60px;
+                }
+                
+                .signature-line {
+                    border-bottom: 1px solid #333;
+                    padding-bottom: 5px;
+                    margin-bottom: 10px;
+                    min-width: 200px;
+                }
+                
+                .signature-label {
+                    font-size: 12px;
+                    color: #64748b;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>📋 СМЕТА</h1>
+                <h2>${estimate.title || 'Без названия'}</h2>
+            </div>
+            
+            <div class="header-info">
+                <div>
+                    <div class="info-item">
+                        <span class="info-label">Дата:</span> ${estimate.date || currentDate}
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Клиент:</span> ${estimate.client || 'Не указан'}
+                    </div>
+                </div>
+                <div>
+                    <div class="info-item">
+                        <span class="info-label">Проект:</span> ${estimate.project || 'Не указан'}
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Печать:</span> ${currentDate}
+                    </div>
+                </div>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">№</th>
+                        <th>Наименование работ/материалов</th>
+                        <th style="width: 80px; text-align: center;">Ед.</th>
+                        <th style="width: 100px; text-align: right;">Кол-во</th>
+                        <th style="width: 120px; text-align: right;">Цена</th>
+                        <th style="width: 140px; text-align: right;">Сумма</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${itemsHTML}
+                </tbody>
+            </table>
+            
+            <div class="total-section">
+                <div class="total-row">
+                    <span class="total-label">ИТОГО:</span>
+                    <span class="total-value">${formatCurrency(grandTotal)}</span>
+                </div>
+            </div>
+            
+            <div class="signature-section">
+                <div>
+                    <div>Исполнитель:</div>
+                    <div class="signature-line"></div>
+                    <div class="signature-label">Подпись / Расшифровка</div>
+                </div>
+                <div>
+                    <div>Заказчик:</div>
+                    <div class="signature-line"></div>
+                    <div class="signature-label">Подпись / Расшифровка</div>
+                </div>
+            </div>
+            
+            <div class="footer">
+                <p>Сформировано в приложении "Смета" © 2025</p>
+                <p>Документ является коммерческим предложением и требует подписания сторонами</p>
+            </div>
+        </body>
+        </html>
+    `;
+}
+
+function formatNumber(num) {
+    return new Intl.NumberFormat('ru-RU', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+    }).format(num);
 }
 
 // Enterprise Features Functions
@@ -1502,29 +1758,77 @@ function initializeEnterpriseFeatures() {
 function exportToExcel() {
     if (!currentEstimate) return;
     
-    let csvContent = "Наименование,Количество,Единица,Цена за ед.,Сумма\n";
-    currentEstimate.items.forEach(item => {
+    // Enhanced CSV with better formatting and metadata
+    const currentDate = new Date().toLocaleDateString('ru-RU');
+    let csvContent = `СМЕТА\n`;
+    csvContent += `Название:,"${currentEstimate.title || 'Без названия'}"\n`;
+    csvContent += `Дата:,${currentEstimate.date || currentDate}\n`;
+    csvContent += `Клиент:,"${currentEstimate.client || 'Не указан'}"\n`;
+    csvContent += `Проект:,"${currentEstimate.project || 'Не указан'}"\n`;
+    csvContent += `\n`;
+    csvContent += `№,Наименование,Единица,Количество,Цена за ед.,Сумма\n`;
+    
+    currentEstimate.items.forEach((item, index) => {
         const total = item.quantity * item.price;
-        csvContent += `"${item.description}",${item.quantity},"${item.unit}",${item.price},${total}\n`;
+        csvContent += `${index + 1},"${item.description}","${item.unit}",${item.quantity},${item.price},${total}\n`;
     });
-    csvContent += `\nИтого:,,,,${currentEstimate.total}`;
+    
+    csvContent += `\n`;
+    csvContent += `ИТОГО:,,,,,${currentEstimate.total}\n`;
+    csvContent += `\n`;
+    csvContent += `Сформировано:,${currentDate}\n`;
+    csvContent += `Приложение:,Смета © 2025\n`;
     
     const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `${currentEstimate.title || 'smeta'}.csv`;
+    const filename = `${(currentEstimate.title || 'smeta').replace(/[^a-zа-я0-9]/gi, '_')}_${new Date().getTime()}.csv`;
+    link.download = filename;
     link.click();
+    
+    // Show success notification
+    showNotification('✅ Excel файл успешно экспортирован', 'success');
 }
 
 function exportToJSON() {
     if (!currentEstimate) return;
     
-    const dataStr = JSON.stringify(currentEstimate, null, 2);
+    // Enhanced JSON with metadata
+    const exportData = {
+        ...currentEstimate,
+        exported_at: new Date().toISOString(),
+        exported_by: 'Смета App v1.0',
+        format_version: '1.0'
+    };
+    
+    const dataStr = JSON.stringify(exportData, null, 2);
     const blob = new Blob([dataStr], { type: 'application/json' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `${currentEstimate.title || 'smeta'}.json`;
+    const filename = `${(currentEstimate.title || 'smeta').replace(/[^a-zа-я0-9]/gi, '_')}_${new Date().getTime()}.json`;
+    link.download = filename;
     link.click();
+    
+    // Show success notification
+    showNotification('✅ JSON файл успешно экспортирован', 'success');
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.classList.add('visible');
+    }, 10);
+    
+    setTimeout(() => {
+        notification.classList.remove('visible');
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 3000);
 }
 
 // Template Functions
