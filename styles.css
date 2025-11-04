@@ -1434,7 +1434,7 @@ footer {
 /* Mobile Responsive Updates */
 @media (max-width: 768px) {
     .comparison-table {
-        overflow-x: scroll;
+        overflow-x: auto;
     }
     
     .summary-cards {
