@@ -46,15 +46,83 @@
         </header>
 
         <main id="app">
+            <!-- Dashboard View -->
+            <div id="dashboardView" class="view">
+                <div class="dashboard-header">
+                    <h2>📊 Панель управления</h2>
+                    <button id="closeDashboardBtn" class="btn btn-secondary">← Назад к списку</button>
+                </div>
+                
+                <div class="dashboard-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon">📋</div>
+                        <div class="stat-value" id="statTotalEstimates">0</div>
+                        <div class="stat-label">Всего смет</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-value" id="statTotalValue">0 ₽</div>
+                        <div class="stat-label">Общая стоимость</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-value" id="statAvgValue">0 ₽</div>
+                        <div class="stat-label">Средняя стоимость</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📅</div>
+                        <div class="stat-value" id="statThisMonth">0</div>
+                        <div class="stat-label">За этот месяц</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Templates View -->
+            <div id="templatesView" class="view">
+                <div class="toolbar">
+                    <button id="closeTemplatesBtn" class="btn">← Назад к списку</button>
+                    <button id="saveTemplateBtn" class="btn btn-success" style="display: none;">💾 Сохранить как шаблон</button>
+                </div>
+                
+                <h2>📑 Шаблоны смет</h2>
+                <div id="templatesList" class="templates-grid">
+                    <!-- Templates will be rendered here -->
+                </div>
+            </div>
+
             <!-- List View -->
             <div id="listView" class="view active">
-                <div class="toolbar">
-                    <button id="createWithAiBtn" class="btn btn-primary">
-                        🤖 Создать с помощью ИИ
-                    </button>
-                    <button id="createManualBtn" class="btn btn-secondary">
-                        ➕ Создать вручную
-                    </button>
+                <div class="toolbar toolbar-extended">
+                    <div class="toolbar-row">
+                        <button id="showDashboardBtn" class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            📊 Дашборд
+                        </button>
+                        <button id="showTemplatesBtn" class="btn" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                            📑 Шаблоны
+                        </button>
+                        <button id="compareEstimatesBtn" class="btn" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);" disabled>
+                            🔍 Сравнить (выберите минимум 2)
+                        </button>
+                        <button id="createWithAiBtn" class="btn btn-primary">
+                            🤖 Создать с ИИ
+                        </button>
+                        <button id="createManualBtn" class="btn btn-secondary">
+                            ➕ Создать вручную
+                        </button>
+                    </div>
+                    
+                    <div class="toolbar-row search-filter-row">
+                        <input type="text" id="searchInput" class="form-control search-input" placeholder="🔍 Поиск по названию, клиенту, проекту...">
+                        <select id="sortBySelect" class="form-control">
+                            <option value="date">Сортировка: по дате</option>
+                            <option value="name">Сортировка: по названию</option>
+                            <option value="total">Сортировка: по стоимости</option>
+                        </select>
+                        <select id="sortOrderSelect" class="form-control">
+                            <option value="desc">↓ По убыванию</option>
+                            <option value="asc">↑ По возрастанию</option>
+                        </select>
+                    </div>
                 </div>
                 
                 <div id="estimatesList" class="estimates-list">
@@ -126,10 +194,18 @@
 
             <!-- Edit View -->
             <div id="editView" class="view">
-                <div class="toolbar">
-                    <button id="backToListBtn" class="btn">← Назад к списку</button>
-                    <button id="saveEstimateBtn" class="btn btn-success">💾 Сохранить</button>
-                    <button id="exportBtn" class="btn">🖨️ Печать</button>
+                <div class="toolbar toolbar-extended">
+                    <div class="toolbar-row">
+                        <button id="backToListBtn" class="btn">← Назад к списку</button>
+                        <button id="saveEstimateBtn" class="btn btn-success">💾 Сохранить</button>
+                        <button id="saveAsTemplateBtn" class="btn">📑 Сохранить как шаблон</button>
+                    </div>
+                    <div class="toolbar-row">
+                        <button id="exportBtn" class="btn">🖨️ Печать</button>
+                        <button id="exportExcelBtn" class="btn">📊 Экспорт в Excel</button>
+                        <button id="exportJsonBtn" class="btn">📄 Экспорт в JSON</button>
+                        <button id="duplicateEstimateBtn" class="btn">📋 Дублировать</button>
+                    </div>
                 </div>
 
                 <div class="estimate-form">

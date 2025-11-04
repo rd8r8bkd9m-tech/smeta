@@ -4,6 +4,30 @@ let currentEstimate = null;
 let editingIndex = -1;
 let generatedEstimateData = null;
 
+// Enterprise Features State
+let templates = [];
+let estimateHistory = {}; // version history for each estimate
+let tags = [];
+let currencies = ['RUB', 'USD', 'EUR'];
+let currentCurrency = 'RUB';
+let exchangeRates = { RUB: 1, USD: 93, EUR: 100 }; // RUB as base
+let searchQuery = '';
+let filterTags = [];
+let sortBy = 'date'; // date, name, total
+let sortOrder = 'desc'; // asc, desc
+
+// Advanced Features State
+let selectedEstimatesForComparison = []; // Multiple estimate comparison
+let favorites = []; // Favorite estimates
+let recentlyViewed = []; // Recently viewed estimates
+let notifications = []; // System notifications
+
+// Enterprise Configuration
+const MAX_ESTIMATE_VERSIONS = 50; // Maximum number of versions to keep per estimate
+const DEFAULT_CATEGORIES = ['Жилая недвижимость', 'Коммерческая недвижимость', 'Ландшафт', 'Разное'];
+const MAX_RECENT_ITEMS = 10; // Maximum number of recently viewed items
+const MAX_COMPARISON_ITEMS = 5; // Maximum estimates for comparison
+
 // PWA State
 let isOnline = navigator.onLine;
 let touchStartY = 0;
@@ -20,24 +44,62 @@ const totalAmount = document.getElementById('totalAmount');
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     loadEstimates();
+    loadTemplates();
+    loadTags();
+    loadEstimateHistory();
+    loadFavorites();
+    loadRecentlyViewed();
     initializeEventListeners();
     renderEstimatesList();
     loadApiKey();
     initializePWAFeatures();
+    initializeEnterpriseFeatures();
 });
 
 // Event Listeners
 function initializeEventListeners() {
+    // Main navigation
     document.getElementById('createWithAiBtn').addEventListener('click', showAiView);
     document.getElementById('createManualBtn').addEventListener('click', createNewEstimate);
     document.getElementById('backFromAiBtn').addEventListener('click', showListView);
     document.getElementById('backToListBtn').addEventListener('click', showListView);
+    
+    // Enterprise features
+    document.getElementById('showDashboardBtn').addEventListener('click', showDashboard);
+    document.getElementById('showTemplatesBtn').addEventListener('click', showTemplatesView);
+    document.getElementById('compareEstimatesBtn').addEventListener('click', compareEstimates);
+    document.getElementById('closeDashboardBtn').addEventListener('click', showListView);
+    document.getElementById('closeTemplatesBtn').addEventListener('click', showListView);
+    
+    // Estimate actions
     document.getElementById('saveEstimateBtn').addEventListener('click', saveCurrentEstimate);
     document.getElementById('addItemBtn').addEventListener('click', addItemRow);
     document.getElementById('exportBtn').addEventListener('click', exportEstimate);
+    document.getElementById('exportExcelBtn').addEventListener('click', exportToExcel);
+    document.getElementById('exportJsonBtn').addEventListener('click', exportToJSON);
+    document.getElementById('saveAsTemplateBtn').addEventListener('click', saveAsTemplate);
+    document.getElementById('duplicateEstimateBtn').addEventListener('click', duplicateEstimate);
+    
+    // AI generation
     document.getElementById('generateEstimateBtn').addEventListener('click', generateEstimateWithAI);
     document.getElementById('acceptAiBtn').addEventListener('click', acceptGeneratedEstimate);
     document.getElementById('regenerateBtn').addEventListener('click', generateEstimateWithAI);
+    
+    // Search and filter
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        searchQuery = e.target.value;
+        renderEstimatesList();
+    });
+    
+    document.getElementById('sortBySelect').addEventListener('change', (e) => {
+        sortBy = e.target.value;
+        renderEstimatesList();
+    });
+    
+    document.getElementById('sortOrderSelect').addEventListener('change', (e) => {
+        sortOrder = e.target.value;
+        renderEstimatesList();
+    });
     
     // Save API key when changed
     document.getElementById('aiApiKey').addEventListener('change', saveApiKey);
@@ -77,11 +139,67 @@ function saveApiKey() {
     }
 }
 
+// Enterprise Storage Functions
+function loadTemplates() {
+    const stored = localStorage.getItem('estimate_templates');
+    if (stored) {
+        try {
+            templates = JSON.parse(stored);
+        } catch (e) {
+            console.error('Error loading templates:', e);
+            templates = [];
+        }
+    }
+    // Initialize default templates if empty
+    if (templates.length === 0) {
+        templates = getDefaultTemplates();
+        saveTemplates();
+    }
+}
+
+function saveTemplates() {
+    localStorage.setItem('estimate_templates', JSON.stringify(templates));
+}
+
+function loadTags() {
+    const stored = localStorage.getItem('estimate_tags');
+    if (stored) {
+        try {
+            tags = JSON.parse(stored);
+        } catch (e) {
+            console.error('Error loading tags:', e);
+            tags = [];
+        }
+    }
+}
+
+function saveTags() {
+    localStorage.setItem('estimate_tags', JSON.stringify(tags));
+}
+
+function loadEstimateHistory() {
+    const stored = localStorage.getItem('estimate_history');
+    if (stored) {
+        try {
+            estimateHistory = JSON.parse(stored);
+        } catch (e) {
+            console.error('Error loading history:', e);
+            estimateHistory = {};
+        }
+    }
+}
+
+function saveEstimateHistory() {
+    localStorage.setItem('estimate_history', JSON.stringify(estimateHistory));
+}
+
 // View Functions
 function showListView() {
     listView.classList.add('active');
     editView.classList.remove('active');
     aiView.classList.remove('active');
+    document.getElementById('dashboardView').classList.remove('active');
+    document.getElementById('templatesView').classList.remove('active');
     renderEstimatesList();
 }
 
@@ -89,16 +207,103 @@ function showEditView() {
     listView.classList.remove('active');
     editView.classList.add('active');
     aiView.classList.remove('active');
+    document.getElementById('dashboardView').classList.remove('active');
+    document.getElementById('templatesView').classList.remove('active');
 }
 
 function showAiView() {
     listView.classList.remove('active');
     editView.classList.remove('active');
     aiView.classList.add('active');
+    document.getElementById('dashboardView').classList.remove('active');
+    document.getElementById('templatesView').classList.remove('active');
     
     // Hide result if visible
     document.getElementById('aiResult').style.display = 'none';
     document.getElementById('aiStatus').style.display = 'none';
+}
+
+function showDashboard() {
+    listView.classList.remove('active');
+    editView.classList.remove('active');
+    aiView.classList.remove('active');
+    document.getElementById('dashboardView').classList.add('active');
+    document.getElementById('templatesView').classList.remove('active');
+    renderDashboard();
+}
+
+function showTemplatesView() {
+    listView.classList.remove('active');
+    editView.classList.remove('active');
+    aiView.classList.remove('active');
+    document.getElementById('dashboardView').classList.remove('active');
+    document.getElementById('templatesView').classList.add('active');
+    renderTemplates();
+}
+
+// Dashboard Rendering
+function renderDashboard() {
+    const stats = getStatistics();
+    document.getElementById('statTotalEstimates').textContent = stats.totalEstimates;
+    document.getElementById('statTotalValue').textContent = formatCurrency(stats.totalValue);
+    document.getElementById('statAvgValue').textContent = formatCurrency(stats.avgValue);
+    document.getElementById('statThisMonth').textContent = stats.thisMonth;
+    
+    // Add growth indicator if available
+    const monthCard = document.querySelector('#statThisMonth').closest('.stat-card');
+    if (monthCard && stats.recentGrowth !== 0) {
+        const growthClass = stats.recentGrowth > 0 ? 'positive' : 'negative';
+        const growthSymbol = stats.recentGrowth > 0 ? '↑' : '↓';
+        monthCard.classList.add(stats.recentGrowth > 0 ? 'growth-positive' : 'growth-negative');
+        
+        let growthEl = monthCard.querySelector('.growth-indicator');
+        if (!growthEl) {
+            growthEl = document.createElement('div');
+            growthEl.className = `growth-indicator ${growthClass}`;
+            monthCard.appendChild(growthEl);
+        }
+        growthEl.textContent = `${growthSymbol} ${Math.abs(stats.recentGrowth).toFixed(1)}%`;
+    }
+}
+
+// Templates Rendering
+function renderTemplates() {
+    const templatesList = document.getElementById('templatesList');
+    
+    if (templates.length === 0) {
+        templatesList.innerHTML = '<div class="empty-state"><p>Нет доступных шаблонов</p></div>';
+        return;
+    }
+    
+    templatesList.innerHTML = templates.map(template => `
+        <div class="template-card" data-template-id="${template.id}">
+            <h3>${template.name}</h3>
+            <p class="template-category">${template.category}</p>
+            <p class="template-description">${template.description}</p>
+            <p class="template-items">📋 ${template.items.length} позиций</p>
+            <button class="btn btn-primary use-template-btn" data-template-id="${template.id}">
+                ✨ Использовать шаблон
+            </button>
+        </div>
+    `).join('');
+    
+    // Add event listeners to template buttons
+    document.querySelectorAll('.use-template-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const templateId = btn.dataset.templateId;
+            createFromTemplate(templateId);
+        });
+    });
+}
+
+function duplicateEstimate() {
+    if (!currentEstimate) return;
+    
+    currentEstimate.title = (currentEstimate.title || 'Смета') + ' (копия)';
+    currentEstimate.date = new Date().toISOString().split('T')[0];
+    editingIndex = -1;
+    
+    alert('Создана копия сметы. Отредактируйте и сохраните.');
 }
 
 // AI Generation Functions
@@ -574,37 +779,85 @@ function acceptGeneratedEstimate() {
 
 // Estimate List Functions
 function renderEstimatesList() {
-    if (estimates.length === 0) {
-        estimatesList.innerHTML = `
-            <div class="empty-state">
-                <p>📄 Нет сохраненных смет</p>
-                <p class="help-text">Используйте ИИ для быстрого создания или создайте вручную</p>
-            </div>
-        `;
+    const filtered = filterEstimates();
+    
+    if (filtered.length === 0) {
+        if (estimates.length === 0) {
+            estimatesList.innerHTML = `
+                <div class="empty-state">
+                    <p>📄 Нет сохраненных смет</p>
+                    <p class="help-text">Используйте ИИ для быстрого создания или создайте вручную</p>
+                </div>
+            `;
+        } else {
+            estimatesList.innerHTML = `
+                <div class="empty-state">
+                    <p>🔍 Ничего не найдено</p>
+                    <p class="help-text">Попробуйте изменить параметры поиска</p>
+                </div>
+            `;
+        }
+        updateComparisonButton();
         return;
     }
     
-    estimatesList.innerHTML = estimates.map((estimate, index) => `
-        <div class="estimate-card" data-index="${index}">
-            <h3>${estimate.title || 'Без названия'}</h3>
+    estimatesList.innerHTML = filtered.map((estimate, index) => {
+        // Find original index for actions
+        const originalIndex = estimates.indexOf(estimate);
+        const estimateId = estimate.id || originalIndex;
+        const isFavorite = favorites.includes(estimateId);
+        const isSelected = selectedEstimatesForComparison.includes(estimateId);
+        const isRecent = recentlyViewed.includes(estimateId);
+        
+        return `
+        <div class="estimate-card" data-index="${originalIndex}">
+            <div class="comparison-checkbox">
+                <input type="checkbox" 
+                       class="compare-check" 
+                       data-index="${originalIndex}" 
+                       ${isSelected ? 'checked' : ''}
+                       title="Выбрать для сравнения">
+            </div>
+            <h3>
+                ${estimate.title || 'Без названия'}
+                <span class="favorite-star ${isFavorite ? 'active' : ''}" 
+                      data-action="favorite" 
+                      data-index="${originalIndex}"
+                      title="${isFavorite ? 'Удалить из избранного' : 'Добавить в избранное'}">
+                    ${isFavorite ? '⭐' : '☆'}
+                </span>
+                ${isRecent ? '<span class="recently-viewed-badge">Недавние</span>' : ''}
+            </h3>
             <div class="estimate-card-info">
                 <span>📅 ${estimate.date || 'Дата не указана'}</span>
                 <span>👤 ${estimate.client || 'Клиент не указан'}</span>
                 <span>📁 ${estimate.project || 'Проект не указан'}</span>
             </div>
+            ${estimate.category ? `<div class="estimate-category">📂 ${estimate.category}</div>` : ''}
+            ${estimate.tags && estimate.tags.length > 0 ? `<div class="estimate-tags">${estimate.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>` : ''}
             <div class="estimate-card-total">
                 Итого: ${formatCurrency(estimate.total || 0)}
             </div>
             <div class="estimate-card-actions">
-                <button class="btn btn-primary btn-small" data-action="edit" data-index="${index}">✏️ Редактировать</button>
-                <button class="btn btn-danger btn-small" data-action="delete" data-index="${index}">🗑️ Удалить</button>
+                <button class="btn btn-primary btn-small" data-action="edit" data-index="${originalIndex}">✏️ Редактировать</button>
+                <button class="btn btn-secondary btn-small" data-action="duplicate" data-index="${originalIndex}">📋 Копировать</button>
+                <button class="btn btn-danger btn-small" data-action="delete" data-index="${originalIndex}">🗑️ Удалить</button>
             </div>
         </div>
-    `).join('');
+    `;
+    }).join('');
     
     // Add click handlers to cards
     document.querySelectorAll('.estimate-card').forEach(card => {
         card.addEventListener('click', (e) => {
+            // Check if it's a checkbox
+            if (e.target.classList.contains('compare-check')) {
+                e.stopPropagation();
+                const index = parseInt(e.target.dataset.index);
+                toggleEstimateForComparison(index);
+                return;
+            }
+            
             // Check if it's an action button
             const actionButton = e.target.closest('[data-action]');
             if (actionButton) {
@@ -616,6 +869,10 @@ function renderEstimatesList() {
                     editEstimate(index);
                 } else if (action === 'delete') {
                     deleteEstimate(index);
+                } else if (action === 'duplicate') {
+                    duplicateEstimateFromList(index);
+                } else if (action === 'favorite') {
+                    toggleFavorite(index);
                 }
             } else if (!e.target.closest('.estimate-card-actions')) {
                 const index = parseInt(card.dataset.index);
@@ -639,9 +896,210 @@ function createNewEstimate() {
     showEditView();
 }
 
+// Create a billion-dollar mega project demonstration
+function createMegaProject() {
+    currentEstimate = {
+        title: 'Мегапроект: Международный бизнес-комплекс "Москва-Сити 2.0"',
+        date: new Date().toISOString().split('T')[0],
+        client: 'Правительство г. Москвы',
+        project: 'Строительство многофункционального бизнес-комплекса с офисными, торговыми и жилыми зонами',
+        items: [
+            // Major infrastructure
+            {
+                description: '🏗️ [Работы] Подготовка территории и земляные работы (850 тыс. м³)',
+                quantity: 850000,
+                unit: 'м³',
+                price: 4500
+            },
+            {
+                description: '🏗️ [Работы] Устройство фундамента и подземных уровней (5 уровней парковки)',
+                quantity: 425000,
+                unit: 'м³',
+                price: 35000
+            },
+            {
+                description: '🏢 [Работы] Возведение несущих конструкций (башни высотой 350м)',
+                quantity: 320000,
+                unit: 'м²',
+                price: 125000
+            },
+            {
+                description: '🏢 [Работы] Монтаж фасадных систем (стекло, алюминий, композиты)',
+                quantity: 280000,
+                unit: 'м²',
+                price: 45000
+            },
+            // Materials
+            {
+                description: '📦 [Материалы] Бетон высокопрочный M500-M600',
+                quantity: 650000,
+                unit: 'м³',
+                price: 12000
+            },
+            {
+                description: '📦 [Материалы] Арматура класса A500C',
+                quantity: 85000,
+                unit: 'т',
+                price: 65000
+            },
+            {
+                description: '📦 [Материалы] Металлоконструкции (колонны, балки)',
+                quantity: 42000,
+                unit: 'т',
+                price: 95000
+            },
+            {
+                description: '📦 [Материалы] Стеклянные фасадные панели (энергоэффективные)',
+                quantity: 280000,
+                unit: 'м²',
+                price: 18500
+            },
+            // Engineering systems
+            {
+                description: '⚡ [Работы] Электроснабжение и освещение (трансформаторные подстанции)',
+                quantity: 45,
+                unit: 'шт',
+                price: 28000000
+            },
+            {
+                description: '💧 [Работы] Системы водоснабжения и канализации',
+                quantity: 850000,
+                unit: 'м²',
+                price: 3200
+            },
+            {
+                description: '❄️ [Работы] Системы вентиляции и кондиционирования',
+                quantity: 850000,
+                unit: 'м²',
+                price: 4800
+            },
+            {
+                description: '🔥 [Работы] Противопожарные системы и сигнализация',
+                quantity: 850000,
+                unit: 'м²',
+                price: 2100
+            },
+            {
+                description: '🚀 [Материалы] Лифтовое оборудование (120 высокоскоростных лифтов)',
+                quantity: 120,
+                unit: 'шт',
+                price: 15000000
+            },
+            {
+                description: '🚀 [Материалы] Эскалаторы и травалаторы',
+                quantity: 85,
+                unit: 'шт',
+                price: 4500000
+            },
+            // Interior and finishing
+            {
+                description: '✨ [Работы] Внутренняя отделка офисных помещений премиум-класса',
+                quantity: 480000,
+                unit: 'м²',
+                price: 28000
+            },
+            {
+                description: '✨ [Работы] Отделка торговых площадей',
+                quantity: 120000,
+                unit: 'м²',
+                price: 35000
+            },
+            {
+                description: '✨ [Работы] Отделка жилых помещений класса "люкс"',
+                quantity: 95000,
+                unit: 'м²',
+                price: 42000
+            },
+            {
+                description: '🎨 [Материалы] Натуральный камень для отделки (мрамор, гранит)',
+                quantity: 45000,
+                unit: 'м²',
+                price: 25000
+            },
+            // Smart building systems
+            {
+                description: '🤖 [Работы] Системы "Умный дом" и автоматизация здания (BMS)',
+                quantity: 1,
+                unit: 'шт',
+                price: 850000000
+            },
+            {
+                description: '📡 [Работы] IT-инфраструктура и серверные',
+                quantity: 1,
+                unit: 'шт',
+                price: 420000000
+            },
+            {
+                description: '🛡️ [Работы] Системы безопасности (видеонаблюдение, СКУД, охрана)',
+                quantity: 1,
+                unit: 'шт',
+                price: 380000000
+            },
+            // Landscaping and external works
+            {
+                description: '🌳 [Работы] Благоустройство территории (25 га)',
+                quantity: 250000,
+                unit: 'м²',
+                price: 8500
+            },
+            {
+                description: '🚗 [Работы] Устройство дорог, парковок и подъездных путей',
+                quantity: 85000,
+                unit: 'м²',
+                price: 12000
+            },
+            {
+                description: '💡 [Работы] Наружное освещение и малые архитектурные формы',
+                quantity: 1,
+                unit: 'шт',
+                price: 180000000
+            },
+            // Project management and design
+            {
+                description: '📋 [Работы] Проектно-изыскательские работы',
+                quantity: 1,
+                unit: 'шт',
+                price: 950000000
+            },
+            {
+                description: '👷 [Работы] Генподрядные и управленческие услуги',
+                quantity: 1,
+                unit: 'шт',
+                price: 1850000000
+            },
+            {
+                description: '✅ [Работы] Авторский надзор и технический контроль',
+                quantity: 1,
+                unit: 'шт',
+                price: 420000000
+            }
+        ],
+        total: 0
+    };
+    
+    // Calculate total
+    currentEstimate.total = currentEstimate.items.reduce((sum, item) => {
+        return sum + (item.quantity * item.price);
+    }, 0);
+    
+    editingIndex = -1;
+    loadEstimateToForm();
+    showEditView();
+    
+    // Show success message
+    setTimeout(() => {
+        alert(`✨ Создан демонстрационный мегапроект!\n\n` +
+              `💎 Стоимость: ${formatCurrency(currentEstimate.total)}\n\n` +
+              `📊 Позиций: ${currentEstimate.items.length}\n\n` +
+              `🏗️ Масштаб: Международный бизнес-комплекс с офисными, торговыми и жилыми зонами\n\n` +
+              `Это демонстрация возможностей приложения для работы с крупнейшими проектами!`);
+    }, 500);
+}
+
 function editEstimate(index) {
     currentEstimate = JSON.parse(JSON.stringify(estimates[index])); // Deep copy
     editingIndex = index;
+    addToRecentlyViewed(index); // Track recently viewed
     loadEstimateToForm();
     showEditView();
 }
@@ -652,6 +1110,20 @@ function deleteEstimate(index) {
         saveEstimates();
         renderEstimatesList();
     }
+}
+
+function duplicateEstimateFromList(index) {
+    const original = estimates[index];
+    const duplicate = JSON.parse(JSON.stringify(original)); // Deep copy
+    duplicate.title = (duplicate.title || 'Смета') + ' (копия)';
+    duplicate.date = new Date().toISOString().split('T')[0];
+    delete duplicate.id; // Remove ID so it gets a new one
+    
+    estimates.push(duplicate);
+    saveEstimates();
+    renderEstimatesList();
+    
+    alert('✅ Смета скопирована!');
 }
 
 // Form Functions
@@ -808,6 +1280,543 @@ function saveCurrentEstimate() {
 
 function exportEstimate() {
     window.print();
+}
+
+// Enterprise Features Functions
+function getDefaultTemplates() {
+    return [
+        {
+            id: 'apartment-renovation',
+            name: '🏠 Ремонт квартиры (типовой)',
+            description: 'Стандартный ремонт 2-комнатной квартиры 50-60м²',
+            category: 'Жилая недвижимость',
+            items: [
+                { description: 'Демонтаж старых покрытий', quantity: 60, unit: 'м²', price: 350 },
+                { description: 'Выравнивание стен штукатуркой', quantity: 120, unit: 'м²', price: 650 },
+                { description: 'Шпаклевка стен под покраску', quantity: 120, unit: 'м²', price: 280 },
+                { description: 'Покраска стен (2 слоя)', quantity: 120, unit: 'м²', price: 420 },
+                { description: 'Укладка ламината', quantity: 40, unit: 'м²', price: 850 },
+                { description: 'Укладка плитки (ванная, кухня)', quantity: 20, unit: 'м²', price: 1450 },
+                { description: 'Установка натяжного потолка', quantity: 60, unit: 'м²', price: 650 },
+                { description: 'Электромонтажные работы', quantity: 1, unit: 'шт', price: 45000 },
+                { description: 'Сантехнические работы', quantity: 1, unit: 'шт', price: 35000 }
+            ]
+        },
+        {
+            id: 'office-construction',
+            name: '🏢 Строительство офиса',
+            description: 'Строительство офисного помещения 200-300м²',
+            category: 'Коммерческая недвижимость',
+            items: [
+                { description: 'Возведение каркаса', quantity: 250, unit: 'м²', price: 8500 },
+                { description: 'Устройство перегородок', quantity: 150, unit: 'м²', price: 1850 },
+                { description: 'Отделка офисных помещений', quantity: 250, unit: 'м²', price: 3200 },
+                { description: 'Устройство подвесного потолка', quantity: 250, unit: 'м²', price: 1650 },
+                { description: 'Напольное покрытие (ковролин)', quantity: 250, unit: 'м²', price: 1200 },
+                { description: 'Системы вентиляции', quantity: 250, unit: 'м²', price: 2800 },
+                { description: 'Электроснабжение офиса', quantity: 1, unit: 'шт', price: 450000 },
+                { description: 'Системы пожарной безопасности', quantity: 250, unit: 'м²', price: 850 },
+                { description: 'Слаботочные системы', quantity: 1, unit: 'шт', price: 280000 }
+            ]
+        },
+        {
+            id: 'house-construction',
+            name: '🏡 Строительство дома',
+            description: 'Строительство частного дома 150-200м²',
+            category: 'Жилая недвижимость',
+            items: [
+                { description: 'Земляные работы', quantity: 80, unit: 'м³', price: 1200 },
+                { description: 'Устройство фундамента', quantity: 60, unit: 'м³', price: 18000 },
+                { description: 'Возведение стен (кирпич)', quantity: 300, unit: 'м²', price: 4500 },
+                { description: 'Устройство перекрытий', quantity: 180, unit: 'м²', price: 5200 },
+                { description: 'Кровельные работы', quantity: 200, unit: 'м²', price: 2800 },
+                { description: 'Утепление фасада', quantity: 250, unit: 'м²', price: 1650 },
+                { description: 'Отделка фасада (штукатурка)', quantity: 250, unit: 'м²', price: 1850 },
+                { description: 'Окна ПВХ', quantity: 25, unit: 'м²', price: 8500 },
+                { description: 'Внутренняя отделка', quantity: 180, unit: 'м²', price: 4200 },
+                { description: 'Инженерные системы', quantity: 1, unit: 'шт', price: 650000 }
+            ]
+        },
+        {
+            id: 'shop-renovation',
+            name: '🏪 Ремонт магазина',
+            description: 'Ремонт торгового помещения 100-150м²',
+            category: 'Коммерческая недвижимость',
+            items: [
+                { description: 'Демонтаж старой отделки', quantity: 120, unit: 'м²', price: 450 },
+                { description: 'Выравнивание стен', quantity: 200, unit: 'м²', price: 680 },
+                { description: 'Покраска стен', quantity: 200, unit: 'м²', price: 380 },
+                { description: 'Напольное покрытие (коммерческий линолеум)', quantity: 120, unit: 'м²', price: 1450 },
+                { description: 'Подвесной потолок Armstrong', quantity: 120, unit: 'м²', price: 1250 },
+                { description: 'Освещение торгового зала', quantity: 120, unit: 'м²', price: 1850 },
+                { description: 'Витрины и стеллажи', quantity: 1, unit: 'шт', price: 280000 },
+                { description: 'Системы безопасности и видеонаблюдения', quantity: 1, unit: 'шт', price: 120000 }
+            ]
+        },
+        {
+            id: 'landscape-design',
+            name: '🌳 Благоустройство территории',
+            description: 'Благоустройство участка 10-15 соток',
+            category: 'Ландшафт',
+            items: [
+                { description: 'Планировка территории', quantity: 1200, unit: 'м²', price: 280 },
+                { description: 'Устройство дорожек (тротуарная плитка)', quantity: 80, unit: 'м²', price: 2800 },
+                { description: 'Установка бордюров', quantity: 120, unit: 'м', price: 650 },
+                { description: 'Посев газона', quantity: 800, unit: 'м²', price: 380 },
+                { description: 'Посадка деревьев', quantity: 15, unit: 'шт', price: 8500 },
+                { description: 'Посадка кустарников', quantity: 40, unit: 'шт', price: 2200 },
+                { description: 'Устройство цветников', quantity: 50, unit: 'м²', price: 1850 },
+                { description: 'Система автополива', quantity: 1, unit: 'шт', price: 180000 },
+                { description: 'Наружное освещение', quantity: 20, unit: 'шт', price: 12000 },
+                { description: 'Малые архитектурные формы', quantity: 1, unit: 'шт', price: 95000 }
+            ]
+        }
+    ];
+}
+
+function initializeEnterpriseFeatures() {
+    console.log('✓ Enterprise features initialized');
+    console.log(`  - Templates loaded: ${templates.length}`);
+    console.log(`  - Tags loaded: ${tags.length}`);
+    console.log(`  - Currencies: ${currencies.join(', ')}`);
+}
+
+// Advanced Export Functions
+function exportToExcel() {
+    if (!currentEstimate) return;
+    
+    let csvContent = "Наименование,Количество,Единица,Цена за ед.,Сумма\n";
+    currentEstimate.items.forEach(item => {
+        const total = item.quantity * item.price;
+        csvContent += `"${item.description}",${item.quantity},"${item.unit}",${item.price},${total}\n`;
+    });
+    csvContent += `\nИтого:,,,,${currentEstimate.total}`;
+    
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${currentEstimate.title || 'smeta'}.csv`;
+    link.click();
+}
+
+function exportToJSON() {
+    if (!currentEstimate) return;
+    
+    const dataStr = JSON.stringify(currentEstimate, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${currentEstimate.title || 'smeta'}.json`;
+    link.click();
+}
+
+// Template Functions
+function createFromTemplate(templateId) {
+    const template = templates.find(t => t.id === templateId);
+    if (!template) return;
+    
+    currentEstimate = {
+        title: template.name,
+        date: new Date().toISOString().split('T')[0],
+        client: '',
+        project: '',
+        items: JSON.parse(JSON.stringify(template.items)), // Deep copy
+        total: 0,
+        category: template.category,
+        tags: []
+    };
+    
+    // Calculate total
+    currentEstimate.total = currentEstimate.items.reduce((sum, item) => {
+        return sum + (item.quantity * item.price);
+    }, 0);
+    
+    editingIndex = -1;
+    loadEstimateToForm();
+    showEditView();
+}
+
+function saveAsTemplate() {
+    if (!currentEstimate || !currentEstimate.items || currentEstimate.items.length === 0) {
+        alert('Нет позиций для сохранения как шаблон');
+        return;
+    }
+    
+    const name = prompt('Введите название шаблона:', currentEstimate.title);
+    if (!name) return;
+    
+    const description = prompt('Введите описание шаблона (необязательно):');
+    const category = prompt('Введите категорию (Жилая недвижимость, Коммерческая недвижимость, Ландшафт):');
+    
+    const template = {
+        id: 'custom-' + Date.now(),
+        name: name,
+        description: description || '',
+        category: category || 'Разное',
+        items: JSON.parse(JSON.stringify(currentEstimate.items)) // Deep copy
+    };
+    
+    templates.push(template);
+    saveTemplates();
+    alert('✅ Шаблон сохранен!');
+}
+
+// Search and Filter Functions
+function filterEstimates() {
+    let filtered = [...estimates];
+    
+    // Apply search
+    if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        filtered = filtered.filter(est => 
+            (est.title && est.title.toLowerCase().includes(query)) ||
+            (est.client && est.client.toLowerCase().includes(query)) ||
+            (est.project && est.project.toLowerCase().includes(query))
+        );
+    }
+    
+    // Apply tag filter
+    if (filterTags.length > 0) {
+        filtered = filtered.filter(est => 
+            est.tags && est.tags.some(tag => filterTags.includes(tag))
+        );
+    }
+    
+    // Apply sorting
+    filtered.sort((a, b) => {
+        let comparison = 0;
+        switch (sortBy) {
+            case 'name':
+                comparison = (a.title || '').localeCompare(b.title || '');
+                break;
+            case 'total':
+                comparison = (a.total || 0) - (b.total || 0);
+                break;
+            case 'date':
+            default:
+                comparison = (new Date(a.date || 0)) - (new Date(b.date || 0));
+        }
+        return sortOrder === 'asc' ? comparison : -comparison;
+    });
+    
+    return filtered;
+}
+
+// Version History Functions
+function saveVersion(estimateId) {
+    if (!estimateId) return;
+    
+    if (!estimateHistory[estimateId]) {
+        estimateHistory[estimateId] = [];
+    }
+    
+    const estimate = estimates.find(e => e.id === estimateId);
+    if (!estimate) return;
+    
+    estimateHistory[estimateId].push({
+        timestamp: new Date().toISOString(),
+        data: JSON.parse(JSON.stringify(estimate)),
+        user: 'Текущий пользователь'
+    });
+    
+    // Keep only last MAX_ESTIMATE_VERSIONS versions
+    if (estimateHistory[estimateId].length > MAX_ESTIMATE_VERSIONS) {
+        estimateHistory[estimateId] = estimateHistory[estimateId].slice(-MAX_ESTIMATE_VERSIONS);
+    }
+    
+    saveEstimateHistory();
+}
+
+// Dashboard Statistics
+function getStatistics() {
+    const stats = {
+        totalEstimates: estimates.length,
+        totalValue: estimates.reduce((sum, est) => sum + (est.total || 0), 0),
+        avgValue: 0,
+        thisMonth: 0,
+        thisMonthValue: 0,
+        byCategory: {},
+        recentGrowth: 0
+    };
+    
+    stats.avgValue = stats.totalEstimates > 0 ? stats.totalValue / stats.totalEstimates : 0;
+    
+    const now = new Date();
+    const thisMonth = estimates.filter(est => {
+        const estDate = new Date(est.date);
+        return estDate.getMonth() === now.getMonth() && estDate.getFullYear() === now.getFullYear();
+    });
+    
+    stats.thisMonth = thisMonth.length;
+    stats.thisMonthValue = thisMonth.reduce((sum, est) => sum + (est.total || 0), 0);
+    
+    // Calculate by category
+    estimates.forEach(est => {
+        const cat = est.category || 'Разное';
+        if (!stats.byCategory[cat]) {
+            stats.byCategory[cat] = { count: 0, value: 0 };
+        }
+        stats.byCategory[cat].count++;
+        stats.byCategory[cat].value += est.total || 0;
+    });
+    
+    // Calculate growth
+    const lastMonth = estimates.filter(est => {
+        const estDate = new Date(est.date);
+        const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        return estDate.getMonth() === lastMonthDate.getMonth() && 
+               estDate.getFullYear() === lastMonthDate.getFullYear();
+    });
+    
+    const lastMonthValue = lastMonth.reduce((sum, est) => sum + (est.total || 0), 0);
+    if (lastMonthValue > 0) {
+        stats.recentGrowth = ((stats.thisMonthValue - lastMonthValue) / lastMonthValue) * 100;
+    }
+    
+    return stats;
+}
+
+// Comparison Functions
+function toggleEstimateForComparison(index) {
+    const estimateId = estimates[index].id || index;
+    const idx = selectedEstimatesForComparison.indexOf(estimateId);
+    
+    if (idx > -1) {
+        selectedEstimatesForComparison.splice(idx, 1);
+    } else {
+        if (selectedEstimatesForComparison.length < MAX_COMPARISON_ITEMS) {
+            selectedEstimatesForComparison.push(estimateId);
+        } else {
+            alert(`Можно сравнить максимум ${MAX_COMPARISON_ITEMS} смет одновременно`);
+            return;
+        }
+    }
+    
+    renderEstimatesList();
+    updateComparisonButton();
+}
+
+function updateComparisonButton() {
+    const btn = document.getElementById('compareEstimatesBtn');
+    if (btn) {
+        if (selectedEstimatesForComparison.length >= 2) {
+            btn.disabled = false;
+            btn.textContent = `🔍 Сравнить (${selectedEstimatesForComparison.length})`;
+        } else {
+            btn.disabled = true;
+            btn.textContent = '🔍 Сравнить (выберите минимум 2)';
+        }
+    }
+}
+
+function compareEstimates() {
+    if (selectedEstimatesForComparison.length < 2) {
+        alert('Выберите минимум 2 сметы для сравнения');
+        return;
+    }
+    
+    const selectedEstimates = selectedEstimatesForComparison.map(id => 
+        estimates.find((e, i) => (e.id || i) === id)
+    ).filter(e => e);
+    
+    showComparisonView(selectedEstimates);
+}
+
+function showComparisonView(estimatesToCompare) {
+    // Hide other views
+    listView.classList.remove('active');
+    editView.classList.remove('active');
+    aiView.classList.remove('active');
+    document.getElementById('dashboardView').classList.remove('active');
+    document.getElementById('templatesView').classList.remove('active');
+    
+    // Show comparison view
+    let comparisonView = document.getElementById('comparisonView');
+    if (!comparisonView) {
+        comparisonView = document.createElement('div');
+        comparisonView.id = 'comparisonView';
+        comparisonView.className = 'view';
+        document.querySelector('#app').appendChild(comparisonView);
+    }
+    
+    comparisonView.classList.add('active');
+    renderComparison(estimatesToCompare);
+}
+
+function renderComparison(estimatesToCompare) {
+    const comparisonView = document.getElementById('comparisonView');
+    
+    let html = `
+        <div class="comparison-header">
+            <h2>📊 Сравнение смет</h2>
+            <button id="closeComparisonBtn" class="btn btn-secondary">← Назад к списку</button>
+        </div>
+        
+        <div class="comparison-grid">
+            <div class="comparison-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Параметр</th>
+                            ${estimatesToCompare.map(est => `<th>${est.title || 'Без названия'}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Дата</strong></td>
+                            ${estimatesToCompare.map(est => `<td>${est.date || '-'}</td>`).join('')}
+                        </tr>
+                        <tr>
+                            <td><strong>Клиент</strong></td>
+                            ${estimatesToCompare.map(est => `<td>${est.client || '-'}</td>`).join('')}
+                        </tr>
+                        <tr>
+                            <td><strong>Проект</strong></td>
+                            ${estimatesToCompare.map(est => `<td>${est.project || '-'}</td>`).join('')}
+                        </tr>
+                        <tr>
+                            <td><strong>Категория</strong></td>
+                            ${estimatesToCompare.map(est => `<td>${est.category || '-'}</td>`).join('')}
+                        </tr>
+                        <tr>
+                            <td><strong>Количество позиций</strong></td>
+                            ${estimatesToCompare.map(est => `<td>${est.items ? est.items.length : 0}</td>`).join('')}
+                        </tr>
+                        <tr class="highlight-row">
+                            <td><strong>Итоговая стоимость</strong></td>
+                            ${estimatesToCompare.map(est => `<td><strong>${formatCurrency(est.total || 0)}</strong></td>`).join('')}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="comparison-summary">
+                <h3>Сводка сравнения</h3>
+                <div class="summary-cards">
+                    <div class="summary-card">
+                        <div class="summary-label">Самая дорогая</div>
+                        <div class="summary-value">${formatCurrency(Math.max(...estimatesToCompare.map(e => e.total || 0)))}</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Самая дешевая</div>
+                        <div class="summary-value">${formatCurrency(Math.min(...estimatesToCompare.map(e => e.total || 0)))}</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Средняя</div>
+                        <div class="summary-value">${formatCurrency(estimatesToCompare.reduce((sum, e) => sum + (e.total || 0), 0) / estimatesToCompare.length)}</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Разница</div>
+                        <div class="summary-value">${formatCurrency(Math.max(...estimatesToCompare.map(e => e.total || 0)) - Math.min(...estimatesToCompare.map(e => e.total || 0)))}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    comparisonView.innerHTML = html;
+    
+    // Add event listener
+    document.getElementById('closeComparisonBtn').addEventListener('click', () => {
+        comparisonView.classList.remove('active');
+        selectedEstimatesForComparison = [];
+        showListView();
+    });
+}
+
+// Favorites Management
+function toggleFavorite(index) {
+    const estimateId = estimates[index].id || index;
+    const idx = favorites.indexOf(estimateId);
+    
+    if (idx > -1) {
+        favorites.splice(idx, 1);
+    } else {
+        favorites.push(estimateId);
+    }
+    
+    saveFavorites();
+    renderEstimatesList();
+}
+
+function saveFavorites() {
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+}
+
+function loadFavorites() {
+    const stored = localStorage.getItem('favorites');
+    if (stored) {
+        try {
+            favorites = JSON.parse(stored);
+        } catch (e) {
+            favorites = [];
+        }
+    }
+}
+
+// Recently Viewed Management
+function addToRecentlyViewed(index) {
+    const estimateId = estimates[index].id || index;
+    
+    // Remove if already in list
+    const idx = recentlyViewed.indexOf(estimateId);
+    if (idx > -1) {
+        recentlyViewed.splice(idx, 1);
+    }
+    
+    // Add to beginning
+    recentlyViewed.unshift(estimateId);
+    
+    // Keep only MAX_RECENT_ITEMS
+    if (recentlyViewed.length > MAX_RECENT_ITEMS) {
+        recentlyViewed = recentlyViewed.slice(0, MAX_RECENT_ITEMS);
+    }
+    
+    saveRecentlyViewed();
+}
+
+function saveRecentlyViewed() {
+    localStorage.setItem('recently_viewed', JSON.stringify(recentlyViewed));
+}
+
+function loadRecentlyViewed() {
+    const stored = localStorage.getItem('recently_viewed');
+    if (stored) {
+        try {
+            recentlyViewed = JSON.parse(stored);
+        } catch (e) {
+            recentlyViewed = [];
+        }
+    }
+}
+
+// Advanced Export with customization
+function exportToPDF() {
+    if (!currentEstimate) return;
+    
+    // Use browser's print with enhanced styling
+    const originalTitle = document.title;
+    document.title = currentEstimate.title || 'Смета';
+    
+    // Add print-specific styles
+    const printStyle = document.createElement('style');
+    printStyle.id = 'print-styles';
+    printStyle.textContent = `
+        @media print {
+            body { background: white !important; }
+            .toolbar { display: none !important; }
+            header, footer { display: none !important; }
+            .estimate-form { box-shadow: none !important; }
+        }
+    `;
+    document.head.appendChild(printStyle);
+    
+    window.print();
+    
+    // Cleanup
+    document.title = originalTitle;
+    const style = document.getElementById('print-styles');
+    if (style) style.remove();
 }
 
 // Utility Functions
