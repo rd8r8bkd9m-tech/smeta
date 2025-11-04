@@ -259,8 +259,14 @@ export class OfflineSyncManager {
         logger.success('Service Worker registered:', registration);
 
         // Request background sync if supported
+        // Note: SyncManager is not in standard TypeScript definitions yet
         if ('sync' in registration) {
-          await (registration as any).sync.register('sync-estimates');
+          interface ServiceWorkerRegistrationWithSync extends ServiceWorkerRegistration {
+            sync: {
+              register: (tag: string) => Promise<void>;
+            };
+          }
+          await (registration as ServiceWorkerRegistrationWithSync).sync.register('sync-estimates');
           logger.success('Background sync registered');
         }
       } catch (error) {
@@ -303,7 +309,8 @@ export class OfflineSyncManager {
     if (this.db) {
       const tx = this.db.transaction('attachments', 'readonly');
       const index = tx.store.index('by-estimate');
-      return await index.getAll(estimateId as any);
+      // Use IDBKeyRange.only() for type-safe index query
+      return await index.getAll(IDBKeyRange.only(estimateId));
     }
 
     return [];

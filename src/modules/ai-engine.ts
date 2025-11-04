@@ -313,7 +313,9 @@ export class AIEngine {
     const totalEstimates = estimates.length;
 
     estimates.forEach(estimate => {
-      const uniqueNames = new Set<string>(estimate.items.map((item: any) => item.name.toLowerCase()));
+      const uniqueNames = new Set<string>(
+        estimate.items.map((item: any) => item.name.toLowerCase())
+      );
       uniqueNames.forEach((name: string) => {
         itemCounts.set(name, (itemCounts.get(name) || 0) + 1);
       });

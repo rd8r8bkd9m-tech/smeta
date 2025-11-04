@@ -12,7 +12,7 @@
   --danger-color: #f44336;
   --warning-color: #ff9800;
   --info-color: #2196f3;
-  
+
   /* Telegram backgrounds */
   --background: #ffffff;
   --background-alt: #f4f4f5;
@@ -20,12 +20,12 @@
   --surface: #ffffff;
   --surface-hover: #f7f7f7;
   --surface-active: #ebebeb;
-  
+
   /* Telegram borders and dividers */
   --border: #e0e0e0;
   --border-light: #f0f0f0;
   --divider: #e5e5ea;
-  
+
   /* Telegram text colors */
   --text: #000000;
   --text-primary: #000000;
@@ -33,7 +33,7 @@
   --text-tertiary: #a0a0a0;
   --text-light: #8e8e93;
   --text-inverse: #ffffff;
-  
+
   /* Telegram shadows - minimal and flat */
   --modal-overlay: rgba(0, 0, 0, 0.4);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
@@ -41,7 +41,7 @@
   --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.1);
   --shadow-xl: 0 8px 20px rgba(0, 0, 0, 0.12);
-  
+
   /* Telegram-style radius */
   --radius-sm: 4px;
   --radius: 8px;
@@ -50,7 +50,7 @@
   --radius-xl: 16px;
   --radius-2xl: 20px;
   --radius-round: 50%;
-  
+
   /* Transitions */
   --transition: all 0.2s ease;
   --transition-fast: all 0.15s ease;
@@ -69,25 +69,25 @@
   --success-dark: #5cb860;
   --danger-color: #ef5350;
   --warning-color: #ffa726;
-  
+
   --background: #0e1621;
   --background-alt: #17212b;
   --background-secondary: #1d2733;
   --surface: #17212b;
   --surface-hover: #1d2733;
   --surface-active: #242f3d;
-  
+
   --border: #2b3945;
   --border-light: #242f3d;
   --divider: #2b3945;
-  
+
   --text: #ffffff;
   --text-primary: #ffffff;
   --text-secondary: #a0a0a0;
   --text-tertiary: #707579;
   --text-light: #707579;
   --text-inverse: #000000;
-  
+
   --modal-overlay: rgba(0, 0, 0, 0.7);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
