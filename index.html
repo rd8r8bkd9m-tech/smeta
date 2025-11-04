@@ -254,6 +254,7 @@
 
         <footer>
             <p>© 2025 Смета - Программа для составления смет</p>
+            <button id="keyboardShortcutsBtn" class="shortcuts-help-btn" title="Горячие клавиши (?)">⌨️</button>
         </footer>
     </div>
 
@@ -267,6 +268,49 @@
             <h3>Установить приложение</h3>
             <p>Установите Смета на ваше устройство для быстрого доступа</p>
             <button id="installButton" class="btn btn-primary btn-large">Установить</button>
+        </div>
+    </div>
+    
+    <!-- Keyboard Shortcuts Modal -->
+    <div id="shortcutsModal" class="shortcuts-modal" style="display: none;">
+        <div class="shortcuts-modal-content">
+            <button id="shortcutsClose" class="shortcuts-close">✕</button>
+            <h2>⌨️ Горячие клавиши</h2>
+            <div class="shortcuts-list">
+                <div class="shortcut-item">
+                    <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>N</kbd></span>
+                    <span class="shortcut-desc">Создать новую смету</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>K</kbd></span>
+                    <span class="shortcut-desc">Создать смету с ИИ</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>S</kbd></span>
+                    <span class="shortcut-desc">Сохранить смету</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>P</kbd></span>
+                    <span class="shortcut-desc">Печать/Экспорт</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>F</kbd></span>
+                    <span class="shortcut-desc">Поиск</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>D</kbd></span>
+                    <span class="shortcut-desc">Переключить тему</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-keys"><kbd>Esc</kbd></span>
+                    <span class="shortcut-desc">Вернуться к списку</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-keys"><kbd>?</kbd></span>
+                    <span class="shortcut-desc">Показать это окно</span>
+                </div>
+            </div>
+            <p class="shortcuts-note">💡 На Mac используйте <kbd>Cmd</kbd> вместо <kbd>Ctrl</kbd></p>
         </div>
     </div>
     

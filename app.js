@@ -1890,6 +1890,9 @@ function initializePWAFeatures() {
         });
     }
     
+    // Initialize keyboard shortcuts
+    initializeKeyboardShortcuts();
+    
     console.log('✓ PWA features initialized');
 }
 
@@ -1997,6 +2000,113 @@ if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
             document.body.appendChild(updateBanner);
         }
     });
+}
+
+// Keyboard Shortcuts
+function initializeKeyboardShortcuts() {
+    // Add event listeners for shortcuts modal
+    const shortcutsBtn = document.getElementById('keyboardShortcutsBtn');
+    const shortcutsModal = document.getElementById('shortcutsModal');
+    const shortcutsClose = document.getElementById('shortcutsClose');
+    
+    if (shortcutsBtn && shortcutsModal) {
+        shortcutsBtn.addEventListener('click', () => {
+            shortcutsModal.style.display = 'flex';
+        });
+    }
+    
+    if (shortcutsClose && shortcutsModal) {
+        shortcutsClose.addEventListener('click', () => {
+            shortcutsModal.style.display = 'none';
+        });
+        
+        // Close on outside click
+        shortcutsModal.addEventListener('click', (e) => {
+            if (e.target === shortcutsModal) {
+                shortcutsModal.style.display = 'none';
+            }
+        });
+    }
+    
+    document.addEventListener('keydown', (e) => {
+        // Check if user is typing in an input field
+        const isTyping = e.target.tagName === 'INPUT' || 
+                        e.target.tagName === 'TEXTAREA' || 
+                        e.target.isContentEditable;
+        
+        const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+        const ctrlKey = isMac ? e.metaKey : e.ctrlKey;
+        
+        // ?: Show keyboard shortcuts
+        if (e.key === '?' && !isTyping) {
+            e.preventDefault();
+            if (shortcutsModal) {
+                shortcutsModal.style.display = 'flex';
+            }
+        }
+        
+        // Escape: Close shortcuts modal if open
+        if (e.key === 'Escape' && shortcutsModal && shortcutsModal.style.display === 'flex') {
+            shortcutsModal.style.display = 'none';
+            return;
+        }
+        
+        // Ctrl/Cmd + N: New estimate
+        if (ctrlKey && e.key === 'n' && !isTyping) {
+            e.preventDefault();
+            document.getElementById('createManualBtn')?.click();
+        }
+        
+        // Ctrl/Cmd + S: Save estimate
+        if (ctrlKey && e.key === 's') {
+            e.preventDefault();
+            const saveBtn = document.getElementById('saveEstimateBtn');
+            if (saveBtn && editView.classList.contains('active')) {
+                saveBtn.click();
+            }
+        }
+        
+        // Ctrl/Cmd + D: Toggle dark mode
+        if (ctrlKey && e.key === 'd' && !isTyping) {
+            e.preventDefault();
+            toggleTheme();
+        }
+        
+        // Ctrl/Cmd + F: Focus search
+        if (ctrlKey && e.key === 'f' && !isTyping) {
+            e.preventDefault();
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput && listView.classList.contains('active')) {
+                searchInput.focus();
+            }
+        }
+        
+        // Escape: Close modals / Return to list
+        if (e.key === 'Escape') {
+            if (editView.classList.contains('active') || 
+                aiView.classList.contains('active') ||
+                document.getElementById('dashboardView').classList.contains('active') ||
+                document.getElementById('templatesView').classList.contains('active')) {
+                showListView();
+            }
+        }
+        
+        // Ctrl/Cmd + P: Print/Export (when in edit view)
+        if (ctrlKey && e.key === 'p') {
+            e.preventDefault();
+            if (editView.classList.contains('active')) {
+                exportEstimate();
+            }
+        }
+        
+        // Ctrl/Cmd + K: Open AI generator
+        if (ctrlKey && e.key === 'k' && !isTyping) {
+            e.preventDefault();
+            document.getElementById('createWithAiBtn')?.click();
+        }
+    });
+    
+    console.log('✓ Keyboard shortcuts initialized');
 }
 
 // Dark Mode Functions
