@@ -5,6 +5,7 @@ This document outlines the complete design overhaul implemented by an experience
 ## Overview
 
 The design system has been completely redesigned with modern UI/UX principles, incorporating:
+
 - **Glassmorphism** - Translucent, frosted-glass effects
 - **Neumorphism** - Soft, extruded UI elements
 - **Premium Animations** - Smooth, delightful micro-interactions
@@ -40,12 +41,14 @@ The design system has been completely redesigned with modern UI/UX principles, i
 ### 1. Glassmorphism Effects
 
 **Header & Cards:**
+
 - Translucent backgrounds with blur effects
 - Subtle borders with opacity
 - Depth through layered shadows
 - Dynamic lighting effects on hover
 
 **Implementation:**
+
 ```css
 background: rgba(255, 255, 255, 0.85);
 backdrop-filter: blur(30px) saturate(180%);
@@ -53,6 +56,7 @@ border: 1px solid rgba(255, 255, 255, 0.6);
 ```
 
 **Benefits:**
+
 - Modern, premium aesthetic
 - Maintains readability
 - Creates visual depth
@@ -61,6 +65,7 @@ border: 1px solid rgba(255, 255, 255, 0.6);
 ### 2. Premium Button Design
 
 **Features:**
+
 - Gradient backgrounds with animation
 - Elevated shadows with glow effects
 - Smooth hover transitions
@@ -68,12 +73,14 @@ border: 1px solid rgba(255, 255, 255, 0.6);
 - Micro-movements on hover
 
 **States:**
+
 - **Default**: Elevated with subtle shadow
 - **Hover**: Lifts up with glow effect
 - **Active**: Pressed down slightly
 - **Disabled**: Reduced opacity
 
 **Types:**
+
 - Primary - Gradient purple/blue
 - Success - Gradient green
 - Warning - Gradient orange/red
@@ -82,6 +89,7 @@ border: 1px solid rgba(255, 255, 255, 0.6);
 ### 3. Enhanced Cards
 
 **Estimate Cards:**
+
 - Glassmorphic background
 - Animated gradient border on hover
 - Smooth scale and lift animation
@@ -89,6 +97,7 @@ border: 1px solid rgba(255, 255, 255, 0.6);
 - Touch-optimized for mobile
 
 **Features:**
+
 - **Before pseudo-element**: Animated gradient top border
 - **Transform**: Subtle scale and translateY
 - **Shadow**: Multiple layers for depth
@@ -97,6 +106,7 @@ border: 1px solid rgba(255, 255, 255, 0.6);
 ### 4. Modern Input Fields
 
 **Design:**
+
 - Rounded corners (12px)
 - Glassmorphic background
 - 2px border for clarity
@@ -104,22 +114,26 @@ border: 1px solid rgba(255, 255, 255, 0.6);
 - Lift animation on focus
 
 **Focus State:**
+
 ```css
 border-color: #667eea;
-box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1),
-            0 4px 6px -1px rgba(0, 0, 0, 0.1);
+box-shadow:
+  0 0 0 4px rgba(102, 126, 234, 0.1),
+  0 4px 6px -1px rgba(0, 0, 0, 0.1);
 transform: translateY(-1px);
 ```
 
 ### 5. Statistics Cards
 
 **Layout:**
+
 - Large, prominent icon (floating animation)
 - Gradient text for values
 - Uppercase labels with letter-spacing
 - Hover effects with radial gradient background
 
 **Animation:**
+
 - Icon floats vertically (3s loop)
 - Card lifts and scales on hover
 - Radial gradient appears on hover
@@ -128,6 +142,7 @@ transform: translateY(-1px);
 ### 6. Theme Toggle
 
 **Design:**
+
 - Circular button (56px)
 - Glassmorphic background
 - Prominent shadow
@@ -135,6 +150,7 @@ transform: translateY(-1px);
 - Rotation effect on interaction
 
 **Position:**
+
 - Fixed top-right corner
 - Always accessible
 - High z-index (1000)
@@ -146,6 +162,7 @@ transform: translateY(-1px);
 ### Light Theme Palette
 
 **Primary Colors:**
+
 - Primary: `#3b82f6` (Blue 500)
 - Secondary: `#8b5cf6` (Purple 500)
 - Success: `#10b981` (Green 500)
@@ -153,6 +170,7 @@ transform: translateY(-1px);
 - Error: `#ef4444` (Red 500)
 
 **Gradients:**
+
 - Primary: `135deg, #667eea → #764ba2`
 - Success: `135deg, #10b981 → #059669`
 - Warm: `135deg, #f59e0b → #dc2626`
@@ -161,6 +179,7 @@ transform: translateY(-1px);
 ### Dark Theme Palette
 
 **Adjusted for Readability:**
+
 - Primary: `#60a5fa` (Blue 400)
 - Secondary: `#a78bfa` (Purple 400)
 - Background: `#0f172a` (Slate 950)
@@ -173,25 +192,24 @@ transform: translateY(-1px);
 ### Font Stack
 
 ```css
-font-family: -apple-system, BlinkMacSystemFont, 
-             'Segoe UI', 'Roboto', 'Oxygen', 
-             'Ubuntu', 'Cantarell', 'Helvetica Neue', 
-             sans-serif;
+font-family:
+  -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell',
+  'Helvetica Neue', sans-serif;
 ```
 
 ### Type Scale
 
-| Size | Rem | Pixels | Usage |
-|------|-----|--------|-------|
-| xs | 0.75rem | 12px | Small labels |
-| sm | 0.875rem | 14px | Secondary text |
-| base | 1rem | 16px | Body text |
-| lg | 1.125rem | 18px | Large body |
-| xl | 1.25rem | 20px | Small headings |
-| 2xl | 1.5rem | 24px | Headings |
-| 3xl | 1.875rem | 30px | Large headings |
-| 4xl | 2.25rem | 36px | Hero headings |
-| 5xl | 3rem | 48px | Display text |
+| Size | Rem      | Pixels | Usage          |
+| ---- | -------- | ------ | -------------- |
+| xs   | 0.75rem  | 12px   | Small labels   |
+| sm   | 0.875rem | 14px   | Secondary text |
+| base | 1rem     | 16px   | Body text      |
+| lg   | 1.125rem | 18px   | Large body     |
+| xl   | 1.25rem  | 20px   | Small headings |
+| 2xl  | 1.5rem   | 24px   | Headings       |
+| 3xl  | 1.875rem | 30px   | Large headings |
+| 4xl  | 2.25rem  | 36px   | Hero headings  |
+| 5xl  | 3rem     | 48px   | Display text   |
 
 ### Font Weights
 
@@ -215,33 +233,41 @@ font-family: -apple-system, BlinkMacSystemFont,
 ### Key Animations
 
 **Gradient Shift:**
+
 ```css
 animation: gradientShift 3s ease infinite;
 ```
+
 - Animates background-position
 - Creates living, breathing effect
 - Used in headers and borders
 
 **Float:**
+
 ```css
 animation: floating 3s ease-in-out infinite;
 ```
+
 - Vertical movement
 - Used for icons and badges
 - Creates playful feel
 
 **Fade In Up:**
+
 ```css
 animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 ```
+
 - Entrance animation for views
 - Combines opacity and transform
 - Smooth page transitions
 
 **Modal Slide In:**
+
 ```css
 animation: modalSlideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 ```
+
 - Bouncy entrance
 - Scales and translates
 - Engaging interaction
@@ -253,47 +279,62 @@ animation: modalSlideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 ### Elevation Levels
 
 **Level 1 - Subtle:**
+
 ```css
 box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 ```
+
 - Slight elevation
 - Cards at rest
 
 **Level 2 - Small:**
+
 ```css
 box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 ```
+
 - Button elevation
 - Inputs
 
 **Level 3 - Medium:**
+
 ```css
-box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-            0 2px 4px -1px rgba(0, 0, 0, 0.06);
+box-shadow:
+  0 4px 6px -1px rgba(0, 0, 0, 0.1),
+  0 2px 4px -1px rgba(0, 0, 0, 0.06);
 ```
+
 - Elevated cards
 - Dropdown menus
 
 **Level 4 - Large:**
+
 ```css
-box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-            0 4px 6px -2px rgba(0, 0, 0, 0.05);
+box-shadow:
+  0 10px 15px -3px rgba(0, 0, 0, 0.1),
+  0 4px 6px -2px rgba(0, 0, 0, 0.05);
 ```
+
 - Hovered cards
 - Important elements
 
 **Level 5 - XL:**
+
 ```css
-box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
-            0 10px 10px -5px rgba(0, 0, 0, 0.04);
+box-shadow:
+  0 20px 25px -5px rgba(0, 0, 0, 0.1),
+  0 10px 10px -5px rgba(0, 0, 0, 0.04);
 ```
+
 - Modals
 - Popovers
 
 **Level 6 - 2XL:**
+
 ```css
 box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 ```
+
 - Highest elevation
 - Hero sections
 - Important dialogs
@@ -301,16 +342,20 @@ box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 ### Glow Effects
 
 **Primary Glow:**
+
 ```css
 box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
 ```
+
 - Hover states
 - Interactive elements
 
 **Success Glow:**
+
 ```css
 box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
 ```
+
 - Success states
 - Positive feedback
 
@@ -352,6 +397,7 @@ box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
 ### Focus States
 
 All interactive elements have visible focus indicators:
+
 ```css
 :focus-visible {
   outline: 3px solid var(--primary-color);
@@ -386,12 +432,14 @@ All interactive elements have visible focus indicators:
 ### Optimization Techniques
 
 1. **GPU Acceleration:**
+
    ```css
    transform: translateZ(0);
    will-change: transform;
    ```
 
 2. **CSS Containment:**
+
    ```css
    contain: layout style paint;
    ```
@@ -412,12 +460,14 @@ All interactive elements have visible focus indicators:
 ### Card Pattern
 
 **Use for:**
+
 - Estimate items
 - Statistics
 - Templates
 - Content blocks
 
 **Features:**
+
 - Glassmorphic background
 - Hover elevation
 - Border on hover
@@ -426,11 +476,13 @@ All interactive elements have visible focus indicators:
 ### Button Pattern
 
 **Primary Actions:**
+
 - Gradient background
 - Glow on hover
 - Ripple effect
 
 **Secondary Actions:**
+
 - Subtle background
 - Border
 - Hover lift
@@ -438,6 +490,7 @@ All interactive elements have visible focus indicators:
 ### Input Pattern
 
 **Form Fields:**
+
 - Rounded corners
 - Focus ring
 - Error states
@@ -450,24 +503,28 @@ All interactive elements have visible focus indicators:
 ### When to Use Each Pattern
 
 **Glassmorphism:**
+
 - Headers and hero sections
 - Overlay content
 - Cards over gradients
 - Navigation bars
 
 **Gradients:**
+
 - Backgrounds
 - Buttons
 - Text highlights
 - Borders
 
 **Shadows:**
+
 - Creating hierarchy
 - Interactive feedback
 - Depth perception
 - Focus attention
 
 **Animations:**
+
 - State changes
 - Page transitions
 - Hover feedback
@@ -480,6 +537,7 @@ All interactive elements have visible focus indicators:
 ### CSS Architecture
 
 Files:
+
 - `design-system.css` - Core design tokens
 - `styles.css` - Component styles (enhanced)
 - `accessibility.css` - A11y styles
@@ -495,6 +553,7 @@ Files:
 ### Custom Properties
 
 All design tokens are CSS custom properties:
+
 ```css
 --primary-color
 --gradient-primary
@@ -503,6 +562,7 @@ All design tokens are CSS custom properties:
 ```
 
 Override in component scope:
+
 ```css
 .my-component {
   --primary-color: #custom;
@@ -593,6 +653,7 @@ Override in component scope:
 ## 📝 Conclusion
 
 This professional design system provides:
+
 - **Cohesive visual language**
 - **Scalable component library**
 - **Accessible by default**

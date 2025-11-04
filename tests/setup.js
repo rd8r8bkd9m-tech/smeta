@@ -1,3 +1,4 @@
+/* globals vi, expect */
 /**
  * Vitest setup file
  */

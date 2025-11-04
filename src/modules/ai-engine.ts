@@ -45,48 +45,40 @@ export class AIEngine {
         itemCount: 0.3,
         avgItemCost: 0.4,
         category: 0.2,
-        historical: 0.1
-      }
+        historical: 0.1,
+      },
     };
   }
 
   /**
    * Predict project cost based on historical data and current inputs
    */
-  public predictCost(
-    items: any[],
-    category: string,
-    historicalEstimates: any[]
-  ): PredictionResult {
+  public predictCost(items: any[], category: string, historicalEstimates: any[]): PredictionResult {
     const itemCount = items.length;
     const totalCost = items.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
     const avgItemCost = itemCount > 0 ? totalCost / itemCount : 0;
 
     // Calculate historical average for similar projects
-    const similarProjects = historicalEstimates.filter(
-      (est) => est.category === category
-    );
-    const historicalAvg = similarProjects.length > 0
-      ? similarProjects.reduce((sum, est) => sum + est.total, 0) / similarProjects.length
-      : 0;
+    const similarProjects = historicalEstimates.filter(est => est.category === category);
+    const historicalAvg =
+      similarProjects.length > 0
+        ? similarProjects.reduce((sum, est) => sum + est.total, 0) / similarProjects.length
+        : 0;
 
     // Apply weights
     const prediction =
       itemCount * this.model.weights.itemCount * 1000 +
       avgItemCost * this.model.weights.avgItemCost +
-      (historicalAvg * this.model.weights.historical);
+      historicalAvg * this.model.weights.historical;
 
-    const confidence = Math.min(
-      0.95,
-      0.5 + (similarProjects.length * 0.05)
-    );
+    const confidence = Math.min(0.95, 0.5 + similarProjects.length * 0.05);
 
     // Identify key factors
     const factors = [
       { name: 'Количество позиций', impact: itemCount * 0.3 },
       { name: 'Средняя стоимость', impact: avgItemCost * 0.4 },
       { name: 'Исторические данные', impact: historicalAvg * 0.1 },
-      { name: 'Категория проекта', impact: 0.2 }
+      { name: 'Категория проекта', impact: 0.2 },
     ].sort((a, b) => b.impact - a.impact);
 
     const recommendations = this.generateRecommendations(
@@ -100,7 +92,7 @@ export class AIEngine {
       predictedCost: Math.round(prediction),
       confidence,
       factors,
-      recommendations
+      recommendations,
     };
   }
 
@@ -112,7 +104,10 @@ export class AIEngine {
 
     // Check for unusual cost patterns
     const avgCost = historicalData.reduce((sum, e) => sum + e.total, 0) / historicalData.length;
-    const stdDev = this.calculateStdDev(historicalData.map(e => e.total), avgCost);
+    const stdDev = this.calculateStdDev(
+      historicalData.map(e => e.total),
+      avgCost
+    );
 
     if (estimate.total > avgCost + 2 * stdDev) {
       anomalies.push({
@@ -120,7 +115,7 @@ export class AIEngine {
         severity: 'high',
         description: `Общая стоимость (${estimate.total}) значительно выше среднего (${Math.round(avgCost)})`,
         affectedItems: [],
-        suggestion: 'Проверьте расчеты и убедитесь в корректности цен'
+        suggestion: 'Проверьте расчеты и убедитесь в корректности цен',
       });
     }
 
@@ -139,19 +134,20 @@ export class AIEngine {
         severity: 'medium',
         description: `Обнаружены возможные дубликаты позиций (${duplicates.length})`,
         affectedItems: duplicates,
-        suggestion: 'Проверьте позиции на дублирование и объедините при необходимости'
+        suggestion: 'Проверьте позиции на дублирование и объедините при необходимости',
       });
     }
 
     // Check for unusual item counts
-    const avgItemCount = historicalData.reduce((sum, e) => sum + e.items.length, 0) / historicalData.length;
+    const avgItemCount =
+      historicalData.reduce((sum, e) => sum + e.items.length, 0) / historicalData.length;
     if (estimate.items.length > avgItemCount * 2) {
       anomalies.push({
         type: 'item_count',
         severity: 'low',
         description: `Необычно большое количество позиций (${estimate.items.length} vs ${Math.round(avgItemCount)} в среднем)`,
         affectedItems: [],
-        suggestion: 'Рассмотрите возможность группировки похожих позиций'
+        suggestion: 'Рассмотрите возможность группировки похожих позиций',
       });
     }
 
@@ -161,28 +157,25 @@ export class AIEngine {
   /**
    * Generate smart suggestions based on estimate content
    */
-  public generateSuggestions(
-    estimate: any,
-    historicalEstimates: any[]
-  ): SmartSuggestion[] {
+  public generateSuggestions(estimate: any, historicalEstimates: any[]): SmartSuggestion[] {
     const suggestions: SmartSuggestion[] = [];
 
     // Suggest missing common items
     const commonItems = this.findCommonItems(historicalEstimates);
-    const currentItemNames = estimate.items.map((item: any) => 
-      item.name.toLowerCase()
-    );
+    const currentItemNames = estimate.items.map((item: any) => item.name.toLowerCase());
 
-    commonItems.forEach((commonItem) => {
-      if (!currentItemNames.some(name => 
-        this.similarityScore(name, commonItem.name.toLowerCase()) > 0.8
-      )) {
+    commonItems.forEach(commonItem => {
+      if (
+        !currentItemNames.some(
+          name => this.similarityScore(name, commonItem.name.toLowerCase()) > 0.8
+        )
+      ) {
         suggestions.push({
           type: 'missing_item',
           title: `Возможно, забыли: ${commonItem.name}`,
           description: `Этот элемент присутствует в ${commonItem.frequency}% похожих смет`,
           action: `add_item:${commonItem.name}`,
-          priority: commonItem.frequency
+          priority: commonItem.frequency,
         });
       }
     });
@@ -198,7 +191,7 @@ export class AIEngine {
         title: 'Оптимизация затрат',
         description: `${expensiveItems.length} позиций составляют основную долю бюджета`,
         action: 'review_expensive_items',
-        priority: 80
+        priority: 80,
       });
     }
 
@@ -211,7 +204,7 @@ export class AIEngine {
           title: `Рекомендуемая категория: ${suggestedCategory}`,
           description: 'На основе анализа содержимого сметы',
           action: `set_category:${suggestedCategory}`,
-          priority: 60
+          priority: 60,
         });
       }
     }
@@ -240,7 +233,7 @@ export class AIEngine {
    */
   public processNaturalQuery(query: string, estimates: any[]): any[] {
     const lowerQuery = query.toLowerCase();
-    
+
     // Parse intent
     if (lowerQuery.includes('дорог') || lowerQuery.includes('больше')) {
       const threshold = this.extractNumber(query) || 100000;
@@ -256,16 +249,15 @@ export class AIEngine {
 
     if (lowerQuery.includes('клиент')) {
       const clientName = this.extractClientName(query);
-      return estimates.filter(e => 
-        e.client.toLowerCase().includes(clientName)
-      );
+      return estimates.filter(e => e.client.toLowerCase().includes(clientName));
     }
 
     // Default: full text search
-    return estimates.filter(e =>
-      e.title.toLowerCase().includes(lowerQuery) ||
-      e.client.toLowerCase().includes(lowerQuery) ||
-      e.project.toLowerCase().includes(lowerQuery)
+    return estimates.filter(
+      e =>
+        e.title.toLowerCase().includes(lowerQuery) ||
+        e.client.toLowerCase().includes(lowerQuery) ||
+        e.project.toLowerCase().includes(lowerQuery)
     );
   }
 
@@ -286,7 +278,9 @@ export class AIEngine {
     const recommendations: string[] = [];
 
     if (predicted > actual * 1.2) {
-      recommendations.push('Прогноз выше текущей стоимости. Проверьте, не упущены ли важные позиции.');
+      recommendations.push(
+        'Прогноз выше текущей стоимости. Проверьте, не упущены ли важные позиции.'
+      );
     }
 
     if (items.length < 5) {
@@ -294,7 +288,9 @@ export class AIEngine {
     }
 
     if (historical.length > 10) {
-      recommendations.push('Достаточно данных для точного прогноза. Используйте исторические данные для планирования.');
+      recommendations.push(
+        'Достаточно данных для точного прогноза. Используйте исторические данные для планирования.'
+      );
     }
 
     return recommendations;
@@ -305,9 +301,7 @@ export class AIEngine {
     const totalEstimates = estimates.length;
 
     estimates.forEach(estimate => {
-      const uniqueNames = new Set(
-        estimate.items.map((item: any) => item.name.toLowerCase())
-      );
+      const uniqueNames = new Set(estimate.items.map((item: any) => item.name.toLowerCase()));
       uniqueNames.forEach(name => {
         itemCounts.set(name, (itemCounts.get(name) || 0) + 1);
       });
@@ -316,7 +310,7 @@ export class AIEngine {
     return Array.from(itemCounts.entries())
       .map(([name, count]) => ({
         name,
-        frequency: Math.round((count / totalEstimates) * 100)
+        frequency: Math.round((count / totalEstimates) * 100),
       }))
       .filter(item => item.frequency > 30)
       .sort((a, b) => b.frequency - a.frequency)
@@ -326,9 +320,9 @@ export class AIEngine {
   private similarityScore(str1: string, str2: string): number {
     const longer = str1.length > str2.length ? str1 : str2;
     const shorter = str1.length > str2.length ? str2 : str1;
-    
+
     if (longer.length === 0) return 1.0;
-    
+
     const editDistance = this.levenshteinDistance(longer, shorter);
     return (longer.length - editDistance) / longer.length;
   }
@@ -363,15 +357,13 @@ export class AIEngine {
 
   private suggestCategory(items: any[], historical: any[]): string | null {
     const keywords = items.map((item: any) => item.name.toLowerCase()).join(' ');
-    
+
     const categoryScores = new Map<string, number>();
     historical.forEach(estimate => {
       if (!estimate.category) return;
-      
-      const estimateKeywords = estimate.items
-        .map((item: any) => item.name.toLowerCase())
-        .join(' ');
-      
+
+      const estimateKeywords = estimate.items.map((item: any) => item.name.toLowerCase()).join(' ');
+
       const similarity = this.textSimilarity(keywords, estimateKeywords);
       categoryScores.set(
         estimate.category,
@@ -381,8 +373,7 @@ export class AIEngine {
 
     if (categoryScores.size === 0) return null;
 
-    const topCategory = Array.from(categoryScores.entries())
-      .sort((a, b) => b[1] - a[1])[0];
+    const topCategory = Array.from(categoryScores.entries()).sort((a, b) => b[1] - a[1])[0];
 
     return topCategory[1] > 0.3 ? topCategory[0] : null;
   }
@@ -390,16 +381,16 @@ export class AIEngine {
   private textSimilarity(text1: string, text2: string): number {
     const words1 = new Set(text1.split(/\s+/));
     const words2 = new Set(text2.split(/\s+/));
-    
+
     const intersection = new Set([...words1].filter(x => words2.has(x)));
     const union = new Set([...words1, ...words2]);
-    
+
     return union.size > 0 ? intersection.size / union.size : 0;
   }
 
   private groupByMonth(estimates: any[]): Map<string, number> {
     const monthlyData = new Map<string, number>();
-    
+
     estimates.forEach(estimate => {
       const date = new Date(estimate.date);
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
@@ -409,18 +400,19 @@ export class AIEngine {
     return monthlyData;
   }
 
-  private calculateTrends(monthlyData: Map<string, number>): Array<{ month: string; amount: number; change: number }> {
+  private calculateTrends(
+    monthlyData: Map<string, number>
+  ): Array<{ month: string; amount: number; change: number }> {
     const sorted = Array.from(monthlyData.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-    
+
     return sorted.map((entry, index) => {
-      const change = index > 0
-        ? ((entry[1] - sorted[index - 1][1]) / sorted[index - 1][1]) * 100
-        : 0;
-      
+      const change =
+        index > 0 ? ((entry[1] - sorted[index - 1][1]) / sorted[index - 1][1]) * 100 : 0;
+
       return {
         month: entry[0],
         amount: entry[1],
-        change: Math.round(change * 10) / 10
+        change: Math.round(change * 10) / 10,
       };
     });
   }
@@ -428,12 +420,12 @@ export class AIEngine {
   private detectSeasonality(monthlyData: Map<string, number>): { high: string[]; low: string[] } {
     const months = Array.from(monthlyData.entries());
     const avg = months.reduce((sum, m) => sum + m[1], 0) / months.length;
-    
+
     const high = months
       .filter(m => m[1] > avg * 1.2)
       .map(m => m[0])
       .slice(0, 3);
-    
+
     const low = months
       .filter(m => m[1] < avg * 0.8)
       .map(m => m[0])
@@ -458,12 +450,12 @@ export class AIEngine {
     for (let i = 1; i <= months; i++) {
       const nextDate = new Date(lastDate);
       nextDate.setMonth(nextDate.getMonth() + i);
-      
+
       predicted = predicted * (1 + avgChange / 100);
-      
+
       forecast.push({
         month: `${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, '0')}`,
-        predicted: Math.round(predicted)
+        predicted: Math.round(predicted),
       });
     }
 
@@ -477,14 +469,12 @@ export class AIEngine {
 
   private extractClientName(query: string): string {
     const words = query.split(/\s+/);
-    const clientIndex = words.findIndex(w => 
-      w.includes('клиент') || w.includes('заказчик')
-    );
-    
+    const clientIndex = words.findIndex(w => w.includes('клиент') || w.includes('заказчик'));
+
     if (clientIndex >= 0 && clientIndex < words.length - 1) {
       return words[clientIndex + 1].toLowerCase();
     }
-    
+
     return '';
   }
 }

@@ -117,7 +117,7 @@ export class VirtualScroll {
 }
 
 // Web Worker for heavy computations
-export function createWorker(fn: Function): Worker {
+export function createWorker(fn: (...args: any[]) => void): Worker {
   const blob = new Blob([`self.onmessage = ${fn.toString()}`], {
     type: 'application/javascript',
   });

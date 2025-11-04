@@ -54,7 +54,7 @@ export class OfflineSyncManager {
           // Create estimates store
           if (!db.objectStoreNames.contains('estimates')) {
             const estimatesStore = db.createObjectStore('estimates', {
-              keyPath: 'id'
+              keyPath: 'id',
             });
             estimatesStore.createIndex('by-date', 'date');
             estimatesStore.createIndex('by-client', 'client');
@@ -68,11 +68,11 @@ export class OfflineSyncManager {
           // Create attachments store
           if (!db.objectStoreNames.contains('attachments')) {
             const attachmentsStore = db.createObjectStore('attachments', {
-              keyPath: 'id'
+              keyPath: 'id',
             });
             attachmentsStore.createIndex('by-estimate', 'estimateId');
           }
-        }
+        },
       });
 
       console.log('✅ IndexedDB initialized');
@@ -93,7 +93,7 @@ export class OfflineSyncManager {
       await this.db.put('estimates', {
         ...estimate,
         _lastModified: Date.now(),
-        _synced: navigator.onLine
+        _synced: navigator.onLine,
       });
 
       // Queue for sync if offline
@@ -152,10 +152,7 @@ export class OfflineSyncManager {
   /**
    * Queue an action for background sync
    */
-  private async queueSync(
-    action: 'create' | 'update' | 'delete',
-    data: any
-  ): Promise<void> {
+  private async queueSync(action: 'create' | 'update' | 'delete', data: any): Promise<void> {
     if (!this.db) return;
 
     const syncItem = {
@@ -163,11 +160,11 @@ export class OfflineSyncManager {
       action,
       data,
       timestamp: Date.now(),
-      retries: 0
+      retries: 0,
     };
 
     await this.db.put('sync_queue', syncItem);
-    
+
     // Trigger sync if online
     if (navigator.onLine) {
       this.processSyncQueue();
@@ -186,17 +183,17 @@ export class OfflineSyncManager {
 
     try {
       const queue = await this.db.getAll('sync_queue');
-      
+
       for (const item of queue) {
         try {
           await this.syncItem(item);
           await this.db.delete('sync_queue', item.id);
         } catch (error) {
           console.error('Failed to sync item:', error);
-          
+
           // Increment retry count
           item.retries++;
-          
+
           if (item.retries < 5) {
             await this.db.put('sync_queue', item);
           } else {
@@ -216,7 +213,7 @@ export class OfflineSyncManager {
    */
   private async syncItem(item: any): Promise<void> {
     // Mock implementation - in production, this would call actual API
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       setTimeout(() => {
         console.log(`✅ Synced ${item.action} for ${item.data.id}`);
         resolve();
@@ -240,11 +237,14 @@ export class OfflineSyncManager {
     });
 
     // Periodic sync every 5 minutes
-    this.syncInterval = window.setInterval(() => {
-      if (navigator.onLine) {
-        this.processSyncQueue();
-      }
-    }, 5 * 60 * 1000);
+    this.syncInterval = window.setInterval(
+      () => {
+        if (navigator.onLine) {
+          this.processSyncQueue();
+        }
+      },
+      5 * 60 * 1000
+    );
   }
 
   /**
@@ -270,11 +270,7 @@ export class OfflineSyncManager {
   /**
    * Save attachment (file) to IndexedDB
    */
-  public async saveAttachment(
-    estimateId: string,
-    filename: string,
-    blob: Blob
-  ): Promise<string> {
+  public async saveAttachment(estimateId: string, filename: string, blob: Blob): Promise<string> {
     if (!this.db) {
       await this.initializeDB();
     }
@@ -287,7 +283,7 @@ export class OfflineSyncManager {
         estimateId,
         filename,
         blob,
-        uploadedAt: new Date()
+        uploadedAt: new Date(),
       });
     }
 
@@ -319,11 +315,11 @@ export class OfflineSyncManager {
     const data = {
       version: 1,
       exportedAt: new Date().toISOString(),
-      estimates
+      estimates,
     };
 
     return new Blob([JSON.stringify(data, null, 2)], {
-      type: 'application/json'
+      type: 'application/json',
     });
   }
 
@@ -369,7 +365,7 @@ export class OfflineSyncManager {
     return {
       queueSize,
       lastSync: null, // Would track this in production
-      isOnline: navigator.onLine
+      isOnline: navigator.onLine,
     };
   }
 

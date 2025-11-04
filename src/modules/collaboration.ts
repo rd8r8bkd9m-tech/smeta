@@ -52,21 +52,21 @@ export class CollaborationManager {
   private initializeWebSocket(): void {
     // In production, replace with actual WebSocket server URL
     const wsUrl = this.getWebSocketUrl();
-    
+
     try {
       this.webSocket = new WebSocket(wsUrl);
-      
+
       this.webSocket.onopen = () => {
         console.log('✅ Collaboration connection established');
         this.reconnectAttempts = 0;
         this.sendHeartbeat();
       };
 
-      this.webSocket.onmessage = (event) => {
+      this.webSocket.onmessage = event => {
         this.handleIncomingMessage(JSON.parse(event.data));
       };
 
-      this.webSocket.onerror = (error) => {
+      this.webSocket.onerror = error => {
         console.error('❌ WebSocket error:', error);
       };
 
@@ -95,9 +95,11 @@ export class CollaborationManager {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
       const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
-      
-      console.log(`Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
-      
+
+      console.log(
+        `Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`
+      );
+
       setTimeout(() => {
         this.initializeWebSocket();
       }, delay);
@@ -144,22 +146,26 @@ export class CollaborationManager {
   /**
    * Broadcast a change to all collaborators
    */
-  public broadcastChange(change: Omit<CollaborationChange, 'id' | 'userId' | 'timestamp' | 'applied'>): void {
+  public broadcastChange(
+    change: Omit<CollaborationChange, 'id' | 'userId' | 'timestamp' | 'applied'>
+  ): void {
     const fullChange: CollaborationChange = {
       ...change,
       id: this.generateId(),
       userId: this.currentUserId,
       timestamp: new Date(),
-      applied: false
+      applied: false,
     };
 
     this.pendingChanges.push(fullChange);
 
     if (this.webSocket && this.webSocket.readyState === WebSocket.OPEN) {
-      this.webSocket.send(JSON.stringify({
-        type: 'change',
-        data: fullChange
-      }));
+      this.webSocket.send(
+        JSON.stringify({
+          type: 'change',
+          data: fullChange,
+        })
+      );
     } else {
       // Queue for later sync
       this.queueOfflineChange(fullChange);
@@ -176,7 +182,7 @@ export class CollaborationManager {
 
     // Check for conflicts
     const conflicts = this.detectConflicts(change);
-    
+
     if (conflicts.length > 0) {
       this.resolveConflicts(change, conflicts);
     } else {
@@ -195,8 +201,8 @@ export class CollaborationManager {
     const event = new CustomEvent('collaboration:change', {
       detail: {
         change,
-        userName
-      }
+        userName,
+      },
     });
     window.dispatchEvent(event);
 
@@ -229,15 +235,16 @@ export class CollaborationManager {
   ): void {
     // Implement operational transformation
     // For now, use timestamp-based resolution (last write wins)
-    const latestLocal = conflicts.reduce((latest, change) => 
-      change.timestamp > latest.timestamp ? change : latest
-    , conflicts[0]);
+    const latestLocal = conflicts.reduce(
+      (latest, change) => (change.timestamp > latest.timestamp ? change : latest),
+      conflicts[0]
+    );
 
     if (remoteChange.timestamp > latestLocal.timestamp) {
       // Remote change is newer, apply it
       this.applyRemoteChange(remoteChange);
       // Mark local changes as stale
-      conflicts.forEach(c => c.applied = true);
+      conflicts.forEach(c => (c.applied = true));
     } else {
       // Local change is newer, keep it
       console.log('Conflict resolved: keeping local changes');
@@ -263,11 +270,11 @@ export class CollaborationManager {
       permission,
       expiresAt,
       createdBy: this.currentUserId,
-      accessCount: 0
+      accessCount: 0,
     };
 
     this.shareLinks.set(linkId, shareLink);
-    
+
     // Store in localStorage
     this.saveShareLinks();
 
@@ -287,7 +294,7 @@ export class CollaborationManager {
    */
   public async useShareLink(linkId: string): Promise<ShareLink | null> {
     const link = this.shareLinks.get(linkId);
-    
+
     if (!link) {
       return null;
     }
@@ -309,14 +316,16 @@ export class CollaborationManager {
    */
   public updateCursor(x: number, y: number): void {
     if (this.webSocket && this.webSocket.readyState === WebSocket.OPEN) {
-      this.webSocket.send(JSON.stringify({
-        type: 'cursor_move',
-        data: {
-          userId: this.currentUserId,
-          x,
-          y
-        }
-      }));
+      this.webSocket.send(
+        JSON.stringify({
+          type: 'cursor_move',
+          data: {
+            userId: this.currentUserId,
+            x,
+            y,
+          },
+        })
+      );
     }
   }
 
@@ -328,10 +337,10 @@ export class CollaborationManager {
     if (collaborator) {
       collaborator.cursor = { x: data.x, y: data.y };
       collaborator.lastSeen = new Date();
-      
+
       // Trigger UI update
       const event = new CustomEvent('collaboration:cursor', {
-        detail: { collaborator }
+        detail: { collaborator },
       });
       window.dispatchEvent(event);
     }
@@ -344,12 +353,12 @@ export class CollaborationManager {
     this.collaborators.set(data.id, {
       ...data,
       isOnline: true,
-      lastSeen: new Date()
+      lastSeen: new Date(),
     });
 
     // Show notification
     const event = new CustomEvent('collaboration:joined', {
-      detail: { collaborator: data }
+      detail: { collaborator: data },
     });
     window.dispatchEvent(event);
   }
@@ -361,9 +370,9 @@ export class CollaborationManager {
     const collaborator = this.collaborators.get(data.userId);
     if (collaborator) {
       collaborator.isOnline = false;
-      
+
       const event = new CustomEvent('collaboration:left', {
-        detail: { collaborator }
+        detail: { collaborator },
       });
       window.dispatchEvent(event);
     }
@@ -373,8 +382,7 @@ export class CollaborationManager {
    * Get all active collaborators
    */
   public getCollaborators(): CollaboratorInfo[] {
-    return Array.from(this.collaborators.values())
-      .filter(c => c.isOnline);
+    return Array.from(this.collaborators.values()).filter(c => c.isOnline);
   }
 
   /**
@@ -392,10 +400,12 @@ export class CollaborationManager {
    */
   private sendHeartbeat(): void {
     if (this.webSocket && this.webSocket.readyState === WebSocket.OPEN) {
-      this.webSocket.send(JSON.stringify({
-        type: 'heartbeat',
-        data: { userId: this.currentUserId }
-      }));
+      this.webSocket.send(
+        JSON.stringify({
+          type: 'heartbeat',
+          data: { userId: this.currentUserId },
+        })
+      );
     }
   }
 
@@ -427,7 +437,7 @@ export class CollaborationManager {
    */
   public async syncOfflineChanges(): Promise<void> {
     const queue = JSON.parse(localStorage.getItem('offline_changes') || '[]');
-    
+
     for (const change of queue) {
       this.broadcastChange(change);
     }
@@ -443,11 +453,11 @@ export class CollaborationManager {
       add: `${userName} добавил(а) элемент`,
       edit: `${userName} изменил(а) элемент`,
       delete: `${userName} удалил(а) элемент`,
-      reorder: `${userName} изменил(а) порядок элементов`
+      reorder: `${userName} изменил(а) порядок элементов`,
     };
 
     const message = messages[change.type] || `${userName} внес(ла) изменения`;
-    
+
     // Use existing notification system
     if (typeof (window as any).showNotification === 'function') {
       (window as any).showNotification(message, 'info');

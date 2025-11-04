@@ -75,28 +75,23 @@ export class EnterpriseManager {
         'template:manage',
         'user:manage',
         'audit:read',
-        'settings:manage'
+        'settings:manage',
       ],
-      description: 'Полный доступ ко всем функциям'
+      description: 'Полный доступ ко всем функциям',
     };
 
     const editorRole: UserRole = {
       id: 'editor',
       name: 'Редактор',
-      permissions: [
-        'estimate:create',
-        'estimate:read',
-        'estimate:update',
-        'estimate:export'
-      ],
-      description: 'Создание и редактирование смет'
+      permissions: ['estimate:create', 'estimate:read', 'estimate:update', 'estimate:export'],
+      description: 'Создание и редактирование смет',
     };
 
     const viewerRole: UserRole = {
       id: 'viewer',
       name: 'Наблюдатель',
       permissions: ['estimate:read', 'estimate:export'],
-      description: 'Только просмотр и экспорт'
+      description: 'Только просмотр и экспорт',
     };
 
     this.roles.set('admin', adminRole);
@@ -129,16 +124,18 @@ export class EnterpriseManager {
       ipAddress: await this.getClientIP(),
       userAgent: navigator.userAgent,
       success,
-      errorMessage
+      errorMessage,
     };
 
     this.auditLogs.push(entry);
     this.saveAuditLogs();
 
     // Trigger event for real-time monitoring
-    window.dispatchEvent(new CustomEvent('enterprise:audit', {
-      detail: { entry }
-    }));
+    window.dispatchEvent(
+      new CustomEvent('enterprise:audit', {
+        detail: { entry },
+      })
+    );
   }
 
   /**
@@ -183,7 +180,7 @@ export class EnterpriseManager {
    */
   public hasPermission(userId: string, permission: Permission): boolean {
     const userRoleIds = this.userRoles.get(userId) || [];
-    
+
     for (const roleId of userRoleIds) {
       const role = this.roles.get(roleId);
       if (role && role.permissions.includes(permission)) {
@@ -217,7 +214,7 @@ export class EnterpriseManager {
   public revokeRole(userId: string, roleId: string): void {
     const userRoleIds = this.userRoles.get(userId) || [];
     const index = userRoleIds.indexOf(roleId);
-    
+
     if (index > -1) {
       userRoleIds.splice(index, 1);
       this.userRoles.set(userId, userRoleIds);
@@ -238,16 +235,13 @@ export class EnterpriseManager {
   /**
    * Generate compliance report
    */
-  public async generateComplianceReport(
-    dateFrom: Date,
-    dateTo: Date
-  ): Promise<ComplianceReport> {
+  public async generateComplianceReport(dateFrom: Date, dateTo: Date): Promise<ComplianceReport> {
     const logs = this.getAuditLogs({ dateFrom, dateTo });
 
     // Calculate metrics
     const estimateActions = logs.filter(log => log.resource === 'estimate');
     const totalEstimates = new Set(estimateActions.map(log => log.resourceId)).size;
-    
+
     // User activity
     const userActivity = new Map<string, number>();
     logs.forEach(log => {
@@ -256,26 +250,30 @@ export class EnterpriseManager {
 
     // Security events
     const securityEvents = new Map<string, number>();
-    logs.filter(log => !log.success).forEach(log => {
-      const type = log.errorMessage || 'Unknown error';
-      securityEvents.set(type, (securityEvents.get(type) || 0) + 1);
-    });
+    logs
+      .filter(log => !log.success)
+      .forEach(log => {
+        const type = log.errorMessage || 'Unknown error';
+        securityEvents.set(type, (securityEvents.get(type) || 0) + 1);
+      });
 
     // Data retention
-    const oldestLog = logs.length > 0
-      ? logs.reduce((oldest, log) => 
-          log.timestamp < oldest.timestamp ? log : oldest
-        )
-      : null;
+    const oldestLog =
+      logs.length > 0
+        ? logs.reduce((oldest, log) => (log.timestamp < oldest.timestamp ? log : oldest))
+        : null;
 
     // Generate recommendations
     const recommendations: string[] = [];
-    
+
     if (logs.filter(log => !log.success).length > logs.length * 0.1) {
       recommendations.push('Высокий процент неудачных операций. Проверьте права доступа.');
     }
-    
-    if (oldestLog && (new Date().getTime() - oldestLog.timestamp.getTime()) > 90 * 24 * 60 * 60 * 1000) {
+
+    if (
+      oldestLog &&
+      new Date().getTime() - oldestLog.timestamp.getTime() > 90 * 24 * 60 * 60 * 1000
+    ) {
       recommendations.push('Рекомендуется архивировать логи старше 90 дней.');
     }
 
@@ -286,17 +284,17 @@ export class EnterpriseManager {
       totalValue: 0, // Would calculate from estimates
       userActivity: Array.from(userActivity.entries()).map(([userId, actionCount]) => ({
         userId,
-        actionCount
+        actionCount,
       })),
       securityEvents: Array.from(securityEvents.entries()).map(([type, count]) => ({
         type,
-        count
+        count,
       })),
       dataRetention: {
         totalRecords: logs.length,
-        oldestRecord: oldestLog?.timestamp || new Date()
+        oldestRecord: oldestLog?.timestamp || new Date(),
       },
-      recommendations
+      recommendations,
     };
   }
 
@@ -379,7 +377,7 @@ export class EnterpriseManager {
   public exportAuditLogs(format: 'csv' | 'json' = 'csv'): Blob {
     if (format === 'json') {
       return new Blob([JSON.stringify(this.auditLogs, null, 2)], {
-        type: 'application/json'
+        type: 'application/json',
       });
     }
 
@@ -393,7 +391,7 @@ export class EnterpriseManager {
       'Resource ID',
       'Success',
       'IP Address',
-      'User Agent'
+      'User Agent',
     ];
 
     const rows = this.auditLogs.map(log => [
@@ -405,12 +403,12 @@ export class EnterpriseManager {
       log.resourceId,
       log.success ? 'Yes' : 'No',
       log.ipAddress || '',
-      log.userAgent || ''
+      log.userAgent || '',
     ]);
 
     const csv = [
       headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(',')),
     ].join('\n');
 
     return new Blob([csv], { type: 'text/csv' });
@@ -424,9 +422,7 @@ export class EnterpriseManager {
     cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
 
     const initialCount = this.auditLogs.length;
-    this.auditLogs = this.auditLogs.filter(
-      log => log.timestamp >= cutoffDate
-    );
+    this.auditLogs = this.auditLogs.filter(log => log.timestamp >= cutoffDate);
     const removedCount = initialCount - this.auditLogs.length;
 
     if (removedCount > 0) {

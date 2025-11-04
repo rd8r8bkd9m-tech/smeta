@@ -47,7 +47,7 @@ export class AdvancedVisualization {
       width = this.canvas.width,
       height = this.canvas.height,
       margin = { top: 40, right: 40, bottom: 60, left: 80 },
-      colors = ['#3b82f6', '#ef4444']
+      colors = ['#3b82f6', '#ef4444'],
     } = options;
 
     this.clear();
@@ -80,11 +80,7 @@ export class AdvancedVisualization {
         this.ctx.font = '12px Arial';
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
-        this.ctx.fillText(
-          value.toFixed(0),
-          x + cellWidth / 2,
-          y + cellHeight / 2
-        );
+        this.ctx.fillText(value.toFixed(0), x + cellWidth / 2, y + cellHeight / 2);
       });
     });
 
@@ -103,7 +99,7 @@ export class AdvancedVisualization {
       width = this.canvas.width,
       height = this.canvas.height,
       margin = { top: 40, right: 40, bottom: 60, left: 60 },
-      animated = true
+      animated = true,
     } = options;
 
     this.clear();
@@ -121,16 +117,14 @@ export class AdvancedVisualization {
 
     // Scale functions
     const xScale = (value: number) =>
-      margin.left +
-      ((value - xMin) / (xMax - xMin)) * (width - margin.left - margin.right);
-    
+      margin.left + ((value - xMin) / (xMax - xMin)) * (width - margin.left - margin.right);
+
     const yScale = (value: number) =>
       height -
       margin.bottom -
       ((value - yMin) / (yMax - yMin)) * (height - margin.top - margin.bottom);
-    
-    const sizeScale = (value: number) =>
-      5 + (value / sizeMax) * 50;
+
+    const sizeScale = (value: number) => 5 + (value / sizeMax) * 50;
 
     // Draw axes
     this.drawAxes(width, height, margin);
@@ -142,7 +136,7 @@ export class AdvancedVisualization {
     const animate = () => {
       if (frame < maxFrames) {
         const progress = frame / maxFrames;
-        
+
         // Easing function
         const eased = 1 - Math.pow(1 - progress, 3);
 
@@ -206,7 +200,7 @@ export class AdvancedVisualization {
     const {
       width = this.canvas.width,
       height = this.canvas.height,
-      margin = { top: 20, right: 20, bottom: 20, left: 20 }
+      margin = { top: 20, right: 20, bottom: 20, left: 20 },
     } = options;
 
     this.clear();
@@ -223,7 +217,7 @@ export class AdvancedVisualization {
     nodes.forEach((node, index) => {
       const column = Math.floor(index / Math.ceil(nodes.length / columns));
       const row = index % Math.ceil(nodes.length / columns);
-      
+
       const x = margin.left + column * (nodeWidth + columnWidth);
       const y = margin.top + row * (height / Math.ceil(nodes.length / columns));
       const nodeHeight = 60;
@@ -244,7 +238,7 @@ export class AdvancedVisualization {
     links.forEach((link, index) => {
       const sourceNode = nodes.find(n => n.id === link.source);
       const targetNode = nodes.find(n => n.id === link.target);
-      
+
       if (sourceNode && targetNode) {
         this.ctx.strokeStyle = this.getColorByIndex(index);
         this.ctx.lineWidth = (link.value / totalValue) * 50;
@@ -265,10 +259,7 @@ export class AdvancedVisualization {
     data: Array<{ label: string; value: number; max: number }>,
     options: ChartOptions = {}
   ): void {
-    const {
-      width = this.canvas.width,
-      height = this.canvas.height
-    } = options;
+    const { width = this.canvas.width, height = this.canvas.height } = options;
 
     this.clear();
 
@@ -344,7 +335,7 @@ export class AdvancedVisualization {
     const {
       width = this.canvas.width,
       height = this.canvas.height,
-      margin = { top: 10, right: 10, bottom: 10, left: 10 }
+      margin = { top: 10, right: 10, bottom: 10, left: 10 },
     } = options;
 
     this.clear();
@@ -357,15 +348,15 @@ export class AdvancedVisualization {
     let currentX = margin.left;
     let currentY = margin.top;
     let rowHeight = 0;
-    let rowWidth = 0;
+    const rowWidth = 0;
 
     data.forEach((item, index) => {
       const ratio = item.value / totalValue;
       const area = ratio * availableWidth * availableHeight;
-      
+
       // Calculate dimensions
-      let itemWidth = Math.sqrt(area);
-      let itemHeight = area / itemWidth;
+      const itemWidth = Math.sqrt(area);
+      const itemHeight = area / itemWidth;
 
       // Check if we need a new row
       if (currentX + itemWidth > width - margin.right) {
@@ -389,11 +380,7 @@ export class AdvancedVisualization {
         this.ctx.font = 'bold 14px Arial';
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
-        this.ctx.fillText(
-          item.label,
-          currentX + itemWidth / 2,
-          currentY + itemHeight / 2 - 8
-        );
+        this.ctx.fillText(item.label, currentX + itemWidth / 2, currentY + itemHeight / 2 - 8);
         this.ctx.font = '12px Arial';
         this.ctx.fillText(
           this.formatNumber(item.value),
@@ -411,25 +398,29 @@ export class AdvancedVisualization {
    * Setup canvas interactions
    */
   private setupInteractions(): void {
-    this.canvas.addEventListener('mousemove', (e) => {
+    this.canvas.addEventListener('mousemove', e => {
       const rect = this.canvas.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
 
       // Trigger custom event with coordinates
-      this.canvas.dispatchEvent(new CustomEvent('chart:hover', {
-        detail: { x, y }
-      }));
+      this.canvas.dispatchEvent(
+        new CustomEvent('chart:hover', {
+          detail: { x, y },
+        })
+      );
     });
 
-    this.canvas.addEventListener('click', (e) => {
+    this.canvas.addEventListener('click', e => {
       const rect = this.canvas.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
 
-      this.canvas.dispatchEvent(new CustomEvent('chart:click', {
-        detail: { x, y }
-      }));
+      this.canvas.dispatchEvent(
+        new CustomEvent('chart:click', {
+          detail: { x, y },
+        })
+      );
     });
   }
 
@@ -461,17 +452,27 @@ export class AdvancedVisualization {
 
   private hexToRgb(hex: string): { r: number; g: number; b: number } | null {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? {
-      r: parseInt(result[1], 16),
-      g: parseInt(result[2], 16),
-      b: parseInt(result[3], 16)
-    } : null;
+    return result
+      ? {
+          r: parseInt(result[1], 16),
+          g: parseInt(result[2], 16),
+          b: parseInt(result[3], 16),
+        }
+      : null;
   }
 
   private getColorByIndex(index: number): string {
     const colors = [
-      '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6',
-      '#06b6d4', '#ec4899', '#14b8a6', '#f97316', '#6366f1'
+      '#3b82f6',
+      '#ef4444',
+      '#10b981',
+      '#f59e0b',
+      '#8b5cf6',
+      '#06b6d4',
+      '#ec4899',
+      '#14b8a6',
+      '#f97316',
+      '#6366f1',
     ];
     return colors[index % colors.length];
   }
@@ -498,11 +499,7 @@ export class AdvancedVisualization {
     // Y-axis labels
     labels.y.forEach((label, i) => {
       this.ctx.textAlign = 'right';
-      this.ctx.fillText(
-        label,
-        margin.left - 10,
-        margin.top + i * cellHeight + cellHeight / 2
-      );
+      this.ctx.fillText(label, margin.left - 10, margin.top + i * cellHeight + cellHeight / 2);
     });
   }
 

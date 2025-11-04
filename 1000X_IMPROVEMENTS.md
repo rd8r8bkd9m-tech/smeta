@@ -11,6 +11,7 @@ This document outlines the comprehensive improvements made to transform the Smet
 ### 1. 🤖 AI-Powered Intelligence
 
 **AI Engine Module** (`src/modules/ai-engine.ts`)
+
 - **Cost Prediction**: ML-based cost forecasting with confidence scoring
 - **Anomaly Detection**: Automatic detection of unusual patterns and potential errors
 - **Smart Suggestions**: Context-aware recommendations for missing items
@@ -19,6 +20,7 @@ This document outlines the comprehensive improvements made to transform the Smet
 - **Category Suggestion**: Automatic project categorization
 
 **Key Features:**
+
 - Predictive analytics using linear regression
 - Levenshtein distance for similarity matching
 - Seasonal trend detection
@@ -27,6 +29,7 @@ This document outlines the comprehensive improvements made to transform the Smet
 - Cost optimization recommendations
 
 **Example Usage:**
+
 ```typescript
 import { aiEngine } from './modules/ai-engine';
 
@@ -46,7 +49,7 @@ const suggestions = aiEngine.generateSuggestions(estimate, historical);
 
 // Natural language search
 const results = aiEngine.processNaturalQuery(
-  "покажи все сметы дороже 100000 за последние 30 дней",
+  'покажи все сметы дороже 100000 за последние 30 дней',
   estimates
 );
 ```
@@ -56,6 +59,7 @@ const results = aiEngine.processNaturalQuery(
 ### 2. 🤝 Real-time Collaboration
 
 **Collaboration Module** (`src/modules/collaboration.ts`)
+
 - **WebSocket Integration**: Real-time multi-user editing
 - **Cursor Tracking**: See where other users are working
 - **Conflict Resolution**: Operational transformation for concurrent edits
@@ -64,6 +68,7 @@ const results = aiEngine.processNaturalQuery(
 - **Offline Queue**: Queue changes when offline, sync when back online
 
 **Key Features:**
+
 - WebSocket with automatic reconnection
 - Timestamp-based conflict resolution
 - Permission levels (view/edit/admin)
@@ -72,6 +77,7 @@ const results = aiEngine.processNaturalQuery(
 - Change notifications
 
 **Example Usage:**
+
 ```typescript
 import { createCollaborationManager } from './modules/collaboration';
 
@@ -81,7 +87,7 @@ const collab = createCollaborationManager('user-123');
 collab.broadcastChange({
   type: 'edit',
   targetId: 'estimate-456',
-  data: { title: 'Updated Title' }
+  data: { title: 'Updated Title' },
 });
 
 // Create share link
@@ -89,12 +95,12 @@ const link = collab.createShareLink('estimate-456', 'edit', 7); // 7 days
 const url = collab.getShareUrl(link.id);
 
 // Track cursor
-document.addEventListener('mousemove', (e) => {
+document.addEventListener('mousemove', e => {
   collab.updateCursor(e.clientX, e.clientY);
 });
 
 // Listen for collaborators
-window.addEventListener('collaboration:joined', (e) => {
+window.addEventListener('collaboration:joined', e => {
   console.log(`${e.detail.collaborator.name} joined`);
 });
 ```
@@ -104,6 +110,7 @@ window.addEventListener('collaboration:joined', (e) => {
 ### 3. 💾 Offline-First Architecture
 
 **Offline Sync Module** (`src/modules/offline-sync.ts`)
+
 - **IndexedDB Storage**: Fast, reliable client-side database
 - **Background Sync**: Automatic synchronization when online
 - **Conflict Resolution**: Smart merging of offline changes
@@ -112,6 +119,7 @@ window.addEventListener('collaboration:joined', (e) => {
 - **Sync Queue**: Guaranteed delivery of changes
 
 **Key Features:**
+
 - idb library integration
 - Service Worker support
 - Automatic retry with exponential backoff
@@ -120,6 +128,7 @@ window.addEventListener('collaboration:joined', (e) => {
 - Sync status monitoring
 
 **Example Usage:**
+
 ```typescript
 import { offlineSyncManager } from './modules/offline-sync';
 
@@ -130,11 +139,7 @@ await offlineSyncManager.saveEstimate(estimate);
 const estimates = await offlineSyncManager.getAllEstimates();
 
 // Save attachment
-const attachmentId = await offlineSyncManager.saveAttachment(
-  estimateId,
-  'invoice.pdf',
-  fileBlob
-);
+const attachmentId = await offlineSyncManager.saveAttachment(estimateId, 'invoice.pdf', fileBlob);
 
 // Export database
 const backup = await offlineSyncManager.exportDatabase();
@@ -151,6 +156,7 @@ console.log(`Online: ${status.isOnline}`);
 ### 4. 📊 Advanced Data Visualization
 
 **Advanced Visualization Module** (`src/modules/advanced-visualization.ts`)
+
 - **Heatmaps**: 2D data visualization with color gradients
 - **Bubble Charts**: Multi-dimensional data representation
 - **Sankey Diagrams**: Flow and relationship visualization
@@ -159,6 +165,7 @@ console.log(`Online: ${status.isOnline}`);
 - **Interactive**: Hover and click events
 
 **Key Features:**
+
 - Canvas-based rendering (no external dependencies)
 - Smooth animations with requestAnimationFrame
 - GPU acceleration
@@ -167,6 +174,7 @@ console.log(`Online: ${status.isOnline}`);
 - Custom chart options
 
 **Example Usage:**
+
 ```typescript
 import { createVisualization } from './modules/advanced-visualization';
 
@@ -175,29 +183,35 @@ const viz = createVisualization(canvas);
 
 // Create heatmap
 viz.createHeatmap(
-  [[10, 20, 30], [40, 50, 60]],
+  [
+    [10, 20, 30],
+    [40, 50, 60],
+  ],
   { x: ['Jan', 'Feb', 'Mar'], y: ['Q1', 'Q2'] },
   { colors: ['#3b82f6', '#ef4444'] }
 );
 
 // Create bubble chart
-viz.createBubbleChart([
-  { x: 100, y: 200, size: 50, label: 'Project A' },
-  { x: 150, y: 180, size: 80, label: 'Project B' }
-], { animated: true });
+viz.createBubbleChart(
+  [
+    { x: 100, y: 200, size: 50, label: 'Project A' },
+    { x: 150, y: 180, size: 80, label: 'Project B' },
+  ],
+  { animated: true }
+);
 
 // Create radar chart
 viz.createRadarChart([
   { label: 'Quality', value: 80, max: 100 },
   { label: 'Speed', value: 70, max: 100 },
-  { label: 'Cost', value: 90, max: 100 }
+  { label: 'Cost', value: 90, max: 100 },
 ]);
 
 // Create treemap
 viz.createTreemap([
   { label: 'Materials', value: 50000 },
   { label: 'Labor', value: 30000 },
-  { label: 'Equipment', value: 20000 }
+  { label: 'Equipment', value: 20000 },
 ]);
 ```
 
@@ -206,6 +220,7 @@ viz.createTreemap([
 ### 5. 🔒 Enterprise Features
 
 **Enterprise Module** (`src/modules/enterprise.ts`)
+
 - **Audit Logging**: Complete audit trail of all actions
 - **Role-Based Access Control**: Granular permissions system
 - **Data Encryption**: AES-256 encryption for sensitive data
@@ -214,6 +229,7 @@ viz.createTreemap([
 - **Data Retention**: Automatic cleanup of old logs
 
 **Key Features:**
+
 - 3 default roles (Admin, Editor, Viewer)
 - 9 permission types
 - IP address tracking
@@ -223,6 +239,7 @@ viz.createTreemap([
 - Encrypted data storage
 
 **Example Usage:**
+
 ```typescript
 import { enterpriseManager } from './modules/enterprise';
 
@@ -268,18 +285,18 @@ const removed = enterpriseManager.clearOldLogs(90); // Keep 90 days
 
 ### Before vs After
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| **Features** | 7 basic | 17 advanced | **+143%** |
-| **Lines of Code** | 2,000 | 7,500+ | **+275%** |
-| **AI Capabilities** | None | 6 AI features | **∞** |
-| **Collaboration** | None | Real-time | **∞** |
-| **Offline Support** | localStorage | IndexedDB + Sync | **10x** |
-| **Visualizations** | 3 basic charts | 8 advanced charts | **+167%** |
-| **Security** | Basic | Enterprise-grade | **100x** |
-| **TypeScript Coverage** | 60% | 95% | **+58%** |
-| **Test Coverage** | 70 tests | 100+ tests | **+43%** |
-| **Performance** | Good | Excellent | **2x faster** |
+| Metric                  | Before         | After             | Improvement   |
+| ----------------------- | -------------- | ----------------- | ------------- |
+| **Features**            | 7 basic        | 17 advanced       | **+143%**     |
+| **Lines of Code**       | 2,000          | 7,500+            | **+275%**     |
+| **AI Capabilities**     | None           | 6 AI features     | **∞**         |
+| **Collaboration**       | None           | Real-time         | **∞**         |
+| **Offline Support**     | localStorage   | IndexedDB + Sync  | **10x**       |
+| **Visualizations**      | 3 basic charts | 8 advanced charts | **+167%**     |
+| **Security**            | Basic          | Enterprise-grade  | **100x**      |
+| **TypeScript Coverage** | 60%            | 95%               | **+58%**      |
+| **Test Coverage**       | 70 tests       | 100+ tests        | **+43%**      |
+| **Performance**         | Good           | Excellent         | **2x faster** |
 
 ---
 
@@ -288,6 +305,7 @@ const removed = enterpriseManager.clearOldLogs(90); // Keep 90 days
 ### What You Can Do Now
 
 **1. AI-Powered Insights**
+
 - ✅ Predict project costs before finalizing
 - ✅ Detect unusual spending patterns automatically
 - ✅ Get smart suggestions for missing items
@@ -296,6 +314,7 @@ const removed = enterpriseManager.clearOldLogs(90); // Keep 90 days
 - ✅ Auto-categorize projects
 
 **2. Team Collaboration**
+
 - ✅ Edit estimates with multiple users simultaneously
 - ✅ See who's currently working on what
 - ✅ Share links with view/edit permissions
@@ -304,6 +323,7 @@ const removed = enterpriseManager.clearOldLogs(90); // Keep 90 days
 - ✅ Work offline, sync when back online
 
 **3. Offline-First**
+
 - ✅ Full functionality without internet
 - ✅ Attach files to estimates (stored locally)
 - ✅ Automatic sync when reconnected
@@ -312,6 +332,7 @@ const removed = enterpriseManager.clearOldLogs(90); // Keep 90 days
 - ✅ Monitor sync status
 
 **4. Advanced Analytics**
+
 - ✅ Interactive heatmaps for cost analysis
 - ✅ Bubble charts for project comparison
 - ✅ Sankey diagrams for cash flow
@@ -320,6 +341,7 @@ const removed = enterpriseManager.clearOldLogs(90); // Keep 90 days
 - ✅ All charts fully interactive
 
 **5. Enterprise Security**
+
 - ✅ Complete audit trail
 - ✅ Role-based permissions
 - ✅ AES-256 encryption
@@ -350,6 +372,7 @@ src/modules/
 ### Integration Points
 
 All modules integrate seamlessly with existing code:
+
 - Use existing notification system
 - Share state management
 - Integrate with PWA service worker
@@ -363,6 +386,7 @@ All modules integrate seamlessly with existing code:
 ### Optimization Results
 
 **Bundle Size:**
+
 - Core app: 150KB (unchanged)
 - AI module: +35KB
 - Collaboration: +28KB
@@ -372,6 +396,7 @@ All modules integrate seamlessly with existing code:
 - **Total increase:** +143KB → **Still only 293KB gzipped**
 
 **Runtime Performance:**
+
 - AI prediction: <50ms
 - Collaboration sync: <10ms
 - IndexedDB queries: <5ms
@@ -379,6 +404,7 @@ All modules integrate seamlessly with existing code:
 - Encryption/Decryption: <20ms
 
 **Memory Usage:**
+
 - AI engine: ~2MB (model cache)
 - Collaboration: ~1MB (change history)
 - IndexedDB: Unlimited (browser dependent)
@@ -411,6 +437,7 @@ All modules integrate seamlessly with existing code:
 ### Testing
 
 **New Test Suites:**
+
 - AI engine tests (15 test cases)
 - Collaboration tests (12 test cases)
 - Offline sync tests (10 test cases)
@@ -444,11 +471,13 @@ All modules integrate seamlessly with existing code:
 ### How to Use New Features
 
 **Step 1: Install Dependencies**
+
 ```bash
 npm install
 ```
 
 **Step 2: Import Modules**
+
 ```typescript
 // AI features
 import { aiEngine } from './src/modules/ai-engine';
@@ -467,6 +496,7 @@ import { enterpriseManager } from './src/modules/enterprise';
 ```
 
 **Step 3: Initialize**
+
 ```typescript
 // In your main app initialization
 const userId = 'current-user-id';
@@ -480,6 +510,7 @@ const predictions = aiEngine.predictCost(items, category, historical);
 ```
 
 **Step 4: Update UI**
+
 - Add AI insights panel
 - Add collaboration indicators
 - Add sync status display
@@ -493,6 +524,7 @@ const predictions = aiEngine.predictCost(items, category, historical);
 ### Roadmap
 
 **Phase 1 (Completed):** ✅
+
 - AI engine
 - Real-time collaboration
 - Offline-first architecture
@@ -500,6 +532,7 @@ const predictions = aiEngine.predictCost(items, category, historical);
 - Enterprise features
 
 **Phase 2 (Next):**
+
 - Machine learning model training
 - Voice commands (Web Speech API)
 - AR visualization (WebXR)
@@ -507,6 +540,7 @@ const predictions = aiEngine.predictCost(items, category, historical);
 - Advanced OCR for invoice scanning
 
 **Phase 3 (Future):**
+
 - Native mobile apps (React Native)
 - Desktop app (Electron)
 - AI chatbot assistant

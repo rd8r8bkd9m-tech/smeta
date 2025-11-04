@@ -29,7 +29,9 @@ export class Analytics {
     };
   }
 
-  private getMonthlyTrends(estimates: Estimate[]): { month: string; count: number; value: number }[] {
+  private getMonthlyTrends(
+    estimates: Estimate[]
+  ): { month: string; count: number; value: number }[] {
     const monthMap = new Map<string, { count: number; value: number }>();
 
     estimates.forEach(est => {
@@ -51,7 +53,9 @@ export class Analytics {
       .slice(-12); // Last 12 months
   }
 
-  private getCategoryBreakdown(estimates: Estimate[]): { category: string; count: number; value: number }[] {
+  private getCategoryBreakdown(
+    estimates: Estimate[]
+  ): { category: string; count: number; value: number }[] {
     const categoryMap = new Map<string, { count: number; value: number }>();
 
     estimates.forEach(est => {
@@ -92,7 +96,12 @@ export class Analytics {
       .slice(0, 10); // Top 10 clients
   }
 
-  generateChart(canvas: HTMLCanvasElement, data: number[], labels: string[], type: 'bar' | 'line' | 'pie'): void {
+  generateChart(
+    canvas: HTMLCanvasElement,
+    data: number[],
+    labels: string[],
+    type: 'bar' | 'line' | 'pie'
+  ): void {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -112,7 +121,14 @@ export class Analytics {
     }
   }
 
-  private drawBarChart(ctx: CanvasRenderingContext2D, data: number[], labels: string[], width: number, height: number, padding: number): void {
+  private drawBarChart(
+    ctx: CanvasRenderingContext2D,
+    data: number[],
+    labels: string[],
+    width: number,
+    height: number,
+    padding: number
+  ): void {
     const maxValue = Math.max(...data);
     const barWidth = (width - padding * 2) / data.length;
     const scale = (height - padding * 2) / maxValue;
@@ -151,7 +167,14 @@ export class Analytics {
     ctx.stroke();
   }
 
-  private drawLineChart(ctx: CanvasRenderingContext2D, data: number[], labels: string[], width: number, height: number, padding: number): void {
+  private drawLineChart(
+    ctx: CanvasRenderingContext2D,
+    data: number[],
+    labels: string[],
+    width: number,
+    height: number,
+    padding: number
+  ): void {
     const maxValue = Math.max(...data);
     const pointSpacing = (width - padding * 2) / (data.length - 1 || 1);
     const scale = (height - padding * 2) / maxValue;
@@ -201,15 +224,27 @@ export class Analytics {
     ctx.stroke();
   }
 
-  private drawPieChart(ctx: CanvasRenderingContext2D, data: number[], labels: string[], width: number, height: number): void {
+  private drawPieChart(
+    ctx: CanvasRenderingContext2D,
+    data: number[],
+    labels: string[],
+    width: number,
+    height: number
+  ): void {
     const centerX = width / 2;
     const centerY = height / 2;
     const radius = Math.min(width, height) / 2 - 60;
     const total = data.reduce((sum, val) => sum + val, 0);
 
     const colors = [
-      '#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b',
-      '#10b981', '#06b6d4', '#6366f1', '#f97316'
+      '#3b82f6',
+      '#8b5cf6',
+      '#ec4899',
+      '#f59e0b',
+      '#10b981',
+      '#06b6d4',
+      '#6366f1',
+      '#f97316',
     ];
 
     let currentAngle = -Math.PI / 2;
