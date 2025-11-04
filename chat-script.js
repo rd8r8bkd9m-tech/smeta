@@ -532,7 +532,6 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // Enhanced addMessage function with receipts
-const originalAddMessage = window.addMessage;
 window.addMessage = function (text, type, avatar) {
   const messageDiv = document.createElement('div');
   messageDiv.className = `message ${type}`;
