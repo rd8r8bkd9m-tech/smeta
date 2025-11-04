@@ -2030,11 +2030,9 @@ function initializeKeyboardShortcuts() {
     
     document.addEventListener('keydown', (e) => {
         // Check if user is typing in an input field
-        const isTyping = e.target.tagName === 'INPUT' || 
-                        e.target.tagName === 'TEXTAREA' || 
-                        e.target.isContentEditable;
+        const isTyping = isUserTyping(e.target);
         
-        const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+        const isMac = detectMacPlatform();
         const ctrlKey = isMac ? e.metaKey : e.ctrlKey;
         
         // ?: Show keyboard shortcuts
@@ -2107,6 +2105,23 @@ function initializeKeyboardShortcuts() {
     });
     
     console.log('✓ Keyboard shortcuts initialized');
+}
+
+// Helper function to detect if user is typing
+function isUserTyping(target) {
+    return target.tagName === 'INPUT' || 
+           target.tagName === 'TEXTAREA' || 
+           target.isContentEditable;
+}
+
+// Helper function to detect Mac platform with modern API
+function detectMacPlatform() {
+    // Use modern API with fallback
+    if (navigator.userAgentData?.platform) {
+        return navigator.userAgentData.platform.toUpperCase().indexOf('MAC') >= 0;
+    }
+    // Fallback to deprecated but widely supported API
+    return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
 }
 
 // Dark Mode Functions
