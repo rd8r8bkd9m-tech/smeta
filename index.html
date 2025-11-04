@@ -1,422 +1,497 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no"
+    />
     <title>Смета - Приложение для составления смет</title>
-    
+
     <!-- SEO Meta Tags -->
-    <meta name="description" content="Профессиональное приложение для составления смет с ИИ генератором. Создавайте точные сметы быстро и легко.">
-    <meta name="keywords" content="смета, строительство, ремонт, ИИ, калькулятор, расчет">
-    <meta name="author" content="rd8r8bkd9m-tech">
-    
+    <meta
+      name="description"
+      content="Профессиональное приложение для составления смет с ИИ генератором. Создавайте точные сметы быстро и легко."
+    />
+    <meta name="keywords" content="смета, строительство, ремонт, ИИ, калькулятор, расчет" />
+    <meta name="author" content="rd8r8bkd9m-tech" />
+
     <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#3b82f6">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="Смета">
-    
+    <meta name="theme-color" content="#3b82f6" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="Смета" />
+
     <!-- iOS Meta Tags -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Смета">
-    
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Смета" />
+
     <!-- iOS Icons -->
-    <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152x152.png">
-    <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192x192.png">
-    <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512x512.png">
-    
+    <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152x152.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192x192.png" />
+    <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512x512.png" />
+
     <!-- iOS Splash Screens -->
-    <link rel="apple-touch-startup-image" href="icons/icon-512x512.png">
-    
+    <link rel="apple-touch-startup-image" href="icons/icon-512x512.png" />
+
     <!-- Favicon -->
-    <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-72x72.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="icons/icon-72x72.png">
-    
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-72x72.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/icon-72x72.png" />
+
     <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json">
-    
+    <link rel="manifest" href="manifest.json" />
+
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
     <!-- Dark Mode Toggle -->
-    <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark mode" title="Переключить тему">
-        <span class="theme-icon">🌙</span>
+    <button
+      id="themeToggle"
+      class="theme-toggle"
+      aria-label="Toggle dark mode"
+      title="Переключить тему"
+    >
+      <span class="theme-icon">🌙</span>
     </button>
-    
+
     <div class="container">
-        <header>
-            <h1>📋 Смета</h1>
-            <p class="subtitle">Приложение для составления и редактирования смет</p>
-        </header>
+      <header>
+        <h1>📋 Смета</h1>
+        <p class="subtitle">Приложение для составления и редактирования смет</p>
+      </header>
 
-        <main id="app">
-            <!-- Dashboard View -->
-            <div id="dashboardView" class="view">
-                <div class="dashboard-header">
-                    <h2>📊 Панель управления</h2>
-                    <button id="closeDashboardBtn" class="btn btn-secondary">← Назад к списку</button>
-                </div>
-                
-                <div class="dashboard-stats">
-                    <div class="stat-card">
-                        <div class="stat-icon">📋</div>
-                        <div class="stat-value" id="statTotalEstimates">0</div>
-                        <div class="stat-label">Всего смет</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">💰</div>
-                        <div class="stat-value" id="statTotalValue">0 ₽</div>
-                        <div class="stat-label">Общая стоимость</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">📈</div>
-                        <div class="stat-value" id="statAvgValue">0 ₽</div>
-                        <div class="stat-label">Средняя стоимость</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">📅</div>
-                        <div class="stat-value" id="statThisMonth">0</div>
-                        <div class="stat-label">За этот месяц</div>
-                    </div>
-                </div>
+      <main id="app">
+        <!-- Dashboard View -->
+        <div id="dashboardView" class="view">
+          <div class="dashboard-header">
+            <h2>📊 Панель управления</h2>
+            <button id="closeDashboardBtn" class="btn btn-secondary">← Назад к списку</button>
+          </div>
+
+          <div class="dashboard-stats">
+            <div class="stat-card">
+              <div class="stat-icon">📋</div>
+              <div class="stat-value" id="statTotalEstimates">0</div>
+              <div class="stat-label">Всего смет</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">💰</div>
+              <div class="stat-value" id="statTotalValue">0 ₽</div>
+              <div class="stat-label">Общая стоимость</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">📈</div>
+              <div class="stat-value" id="statAvgValue">0 ₽</div>
+              <div class="stat-label">Средняя стоимость</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">📅</div>
+              <div class="stat-value" id="statThisMonth">0</div>
+              <div class="stat-label">За этот месяц</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Templates View -->
+        <div id="templatesView" class="view">
+          <div class="toolbar">
+            <button id="closeTemplatesBtn" class="btn">← Назад к списку</button>
+            <button id="saveTemplateBtn" class="btn btn-success" style="display: none">
+              💾 Сохранить как шаблон
+            </button>
+          </div>
+
+          <h2>📑 Шаблоны смет</h2>
+          <div id="templatesList" class="templates-grid">
+            <!-- Templates will be rendered here -->
+          </div>
+        </div>
+
+        <!-- List View -->
+        <div id="listView" class="view active">
+          <div class="toolbar toolbar-extended">
+            <div class="toolbar-row">
+              <button
+                id="showDashboardBtn"
+                class="btn"
+                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+              >
+                📊 Дашборд
+              </button>
+              <button
+                id="showTemplatesBtn"
+                class="btn"
+                style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
+              >
+                📑 Шаблоны
+              </button>
+              <button
+                id="selectAllBtn"
+                class="btn"
+                style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)"
+                title="Выбрать все"
+              >
+                ☑️ Выбрать все
+              </button>
+              <button id="bulkDeleteBtn" class="btn btn-danger" disabled title="Удалить выбранные">
+                🗑️ Удалить (<span id="selectedCount">0</span>)
+              </button>
+              <button
+                id="compareEstimatesBtn"
+                class="btn"
+                style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%)"
+                disabled
+              >
+                🔍 Сравнить (мин. 2)
+              </button>
+              <button id="createWithAiBtn" class="btn btn-primary">🤖 Создать с ИИ</button>
+              <button id="createManualBtn" class="btn btn-secondary">➕ Создать вручную</button>
             </div>
 
-            <!-- Templates View -->
-            <div id="templatesView" class="view">
-                <div class="toolbar">
-                    <button id="closeTemplatesBtn" class="btn">← Назад к списку</button>
-                    <button id="saveTemplateBtn" class="btn btn-success" style="display: none;">💾 Сохранить как шаблон</button>
-                </div>
-                
-                <h2>📑 Шаблоны смет</h2>
-                <div id="templatesList" class="templates-grid">
-                    <!-- Templates will be rendered here -->
-                </div>
+            <div class="toolbar-row search-filter-row">
+              <input
+                type="text"
+                id="searchInput"
+                class="form-control search-input"
+                placeholder="🔍 Поиск по названию, клиенту, проекту..."
+              />
+              <select id="sortBySelect" class="form-control">
+                <option value="date">Сортировка: по дате</option>
+                <option value="name">Сортировка: по названию</option>
+                <option value="total">Сортировка: по стоимости</option>
+              </select>
+              <select id="sortOrderSelect" class="form-control">
+                <option value="desc">↓ По убыванию</option>
+                <option value="asc">↑ По возрастанию</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="estimatesList" class="estimates-list">
+            <div class="empty-state">
+              <p>📄 Нет сохраненных смет</p>
+              <p class="help-text">Используйте ИИ для быстрого создания или создайте вручную</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Generation View -->
+        <div id="aiView" class="view">
+          <div class="toolbar">
+            <button id="backFromAiBtn" class="btn">← Назад к списку</button>
+          </div>
+
+          <div class="ai-form">
+            <div class="ai-header">
+              <h2>🤖 ИИ Генератор смет</h2>
+              <p class="ai-description">
+                Опишите работы и объект измерения. Наш виртуальный строительный институт с командой
+                специалистов создаст смету с точностью 99%
+              </p>
+
+              <div class="specialists-info">
+                <p><strong>Команда специалистов:</strong></p>
+                <ul class="specialists-list">
+                  <li>🏗️ Главный инженер - анализ объекта</li>
+                  <li>📐 Архитектор - расчет объемов</li>
+                  <li>🔨 Прораб - определение работ</li>
+                  <li>📦 Снабженец - подбор материалов</li>
+                  <li>💰 Сметчик - итоговая смета</li>
+                </ul>
+              </div>
             </div>
 
-            <!-- List View -->
-            <div id="listView" class="view active">
-                <div class="toolbar toolbar-extended">
-                    <div class="toolbar-row">
-                        <button id="showDashboardBtn" class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                            📊 Дашборд
-                        </button>
-                        <button id="showTemplatesBtn" class="btn" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                            📑 Шаблоны
-                        </button>
-                        <button id="selectAllBtn" class="btn" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);" title="Выбрать все">
-                            ☑️ Выбрать все
-                        </button>
-                        <button id="bulkDeleteBtn" class="btn btn-danger" disabled title="Удалить выбранные">
-                            🗑️ Удалить (<span id="selectedCount">0</span>)
-                        </button>
-                        <button id="compareEstimatesBtn" class="btn" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);" disabled>
-                            🔍 Сравнить (мин. 2)
-                        </button>
-                        <button id="createWithAiBtn" class="btn btn-primary">
-                            🤖 Создать с ИИ
-                        </button>
-                        <button id="createManualBtn" class="btn btn-secondary">
-                            ➕ Создать вручную
-                        </button>
-                    </div>
-                    
-                    <div class="toolbar-row search-filter-row">
-                        <input type="text" id="searchInput" class="form-control search-input" placeholder="🔍 Поиск по названию, клиенту, проекту...">
-                        <select id="sortBySelect" class="form-control">
-                            <option value="date">Сортировка: по дате</option>
-                            <option value="name">Сортировка: по названию</option>
-                            <option value="total">Сортировка: по стоимости</option>
-                        </select>
-                        <select id="sortOrderSelect" class="form-control">
-                            <option value="desc">↓ По убыванию</option>
-                            <option value="asc">↑ По возрастанию</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div id="estimatesList" class="estimates-list">
-                    <div class="empty-state">
-                        <p>📄 Нет сохраненных смет</p>
-                        <p class="help-text">Используйте ИИ для быстрого создания или создайте вручную</p>
-                    </div>
-                </div>
+            <div class="form-group">
+              <label for="aiApiKey">API ключ Gemini:</label>
+              <input
+                type="password"
+                id="aiApiKey"
+                class="form-control"
+                placeholder="Введите ваш API ключ Google Gemini"
+              />
+              <small class="help-text"
+                >Получите бесплатный ключ на
+                <a href="https://makersuite.google.com/app/apikey" target="_blank"
+                  >makersuite.google.com</a
+                ></small
+              >
+              <small class="help-text" style="display: block; margin-top: 5px; color: #8b5cf6">
+                ℹ️ Используется модель: Gemini 1.5 Flash (быстрая и точная)
+              </small>
             </div>
 
-            <!-- AI Generation View -->
-            <div id="aiView" class="view">
-                <div class="toolbar">
-                    <button id="backFromAiBtn" class="btn">← Назад к списку</button>
-                </div>
-
-                <div class="ai-form">
-                    <div class="ai-header">
-                        <h2>🤖 ИИ Генератор смет</h2>
-                        <p class="ai-description">Опишите работы и объект измерения. Наш виртуальный строительный институт с командой специалистов создаст смету с точностью 99%</p>
-                        
-                        <div class="specialists-info">
-                            <p><strong>Команда специалистов:</strong></p>
-                            <ul class="specialists-list">
-                                <li>🏗️ Главный инженер - анализ объекта</li>
-                                <li>📐 Архитектор - расчет объемов</li>
-                                <li>🔨 Прораб - определение работ</li>
-                                <li>📦 Снабженец - подбор материалов</li>
-                                <li>💰 Сметчик - итоговая смета</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="aiApiKey">API ключ Gemini:</label>
-                        <input type="password" id="aiApiKey" class="form-control" placeholder="Введите ваш API ключ Google Gemini">
-                        <small class="help-text">Получите бесплатный ключ на <a href="https://makersuite.google.com/app/apikey" target="_blank">makersuite.google.com</a></small>
-                        <small class="help-text" style="display: block; margin-top: 5px; color: #8b5cf6;">
-                            ℹ️ Используется модель: Gemini 1.5 Flash (быстрая и точная)
-                        </small>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="aiDescription">Описание объекта и работ:</label>
-                        <textarea id="aiDescription" class="form-control" rows="6" placeholder="Пример: Ремонт 2-комнатной квартиры 52 кв.м., необходимо выровнять стены штукатуркой, покрасить стены и потолки, уложить ламинат в комнатах и плитку в ванной"></textarea>
-                    </div>
-
-                    <div class="ai-controls">
-                        <button id="generateEstimateBtn" class="btn btn-success btn-large">
-                            ✨ Сгенерировать смету
-                        </button>
-                    </div>
-
-                    <div id="aiStatus" class="ai-status" style="display: none;">
-                        <div class="loading-spinner"></div>
-                        <p class="status-text">Генерация сметы...</p>
-                    </div>
-
-                    <div id="aiResult" class="ai-result" style="display: none;">
-                        <h3>Сгенерированная смета</h3>
-                        <div id="aiResultContent"></div>
-                        <div class="ai-actions">
-                            <button id="acceptAiBtn" class="btn btn-success">✓ Принять и редактировать</button>
-                            <button id="regenerateBtn" class="btn btn-secondary">🔄 Сгенерировать заново</button>
-                        </div>
-                    </div>
-                </div>
+            <div class="form-group">
+              <label for="aiDescription">Описание объекта и работ:</label>
+              <textarea
+                id="aiDescription"
+                class="form-control"
+                rows="6"
+                placeholder="Пример: Ремонт 2-комнатной квартиры 52 кв.м., необходимо выровнять стены штукатуркой, покрасить стены и потолки, уложить ламинат в комнатах и плитку в ванной"
+              ></textarea>
             </div>
 
-            <!-- Edit View -->
-            <div id="editView" class="view">
-                <div class="toolbar toolbar-extended">
-                    <div class="toolbar-row">
-                        <button id="backToListBtn" class="btn">← Назад к списку</button>
-                        <button id="undoBtn" class="btn" disabled title="Отменить (Ctrl+Z)">↶ Отменить</button>
-                        <button id="redoBtn" class="btn" disabled title="Повторить (Ctrl+Y)">↷ Повторить</button>
-                        <button id="saveEstimateBtn" class="btn btn-success">💾 Сохранить</button>
-                        <button id="saveAsTemplateBtn" class="btn">📑 Сохранить как шаблон</button>
-                    </div>
-                    <div class="toolbar-row">
-                        <button id="exportBtn" class="btn">🖨️ Печать</button>
-                        <button id="exportExcelBtn" class="btn">📊 Экспорт в Excel</button>
-                        <button id="exportJsonBtn" class="btn">📄 Экспорт в JSON</button>
-                        <button id="duplicateEstimateBtn" class="btn">📋 Дублировать</button>
-                    </div>
-                </div>
-
-                <div class="estimate-form">
-                    <div class="form-header">
-                        <div class="form-group">
-                            <label for="estimateTitle">Название сметы:</label>
-                            <input type="text" id="estimateTitle" class="form-control" placeholder="Введите название сметы">
-                        </div>
-                        <div class="form-group">
-                            <label for="estimateDate">Дата:</label>
-                            <input type="date" id="estimateDate" class="form-control">
-                        </div>
-                        <div class="form-group">
-                            <label for="estimateClient">Клиент:</label>
-                            <input type="text" id="estimateClient" class="form-control" placeholder="Имя клиента">
-                        </div>
-                        <div class="form-group">
-                            <label for="estimateProject">Проект:</label>
-                            <input type="text" id="estimateProject" class="form-control" placeholder="Название проекта">
-                        </div>
-                    </div>
-
-                    <div class="line-items">
-                        <h3>Позиции сметы</h3>
-                        <button id="addItemBtn" class="btn btn-secondary">➕ Добавить позицию</button>
-                        
-                        <div id="itemsContainer" class="items-container">
-                            <!-- Items will be added dynamically -->
-                        </div>
-                    </div>
-
-                    <div class="totals">
-                        <div class="total-row">
-                            <span class="total-label">Итого:</span>
-                            <span id="totalAmount" class="total-amount">0.00 ₽</span>
-                        </div>
-                    </div>
-                </div>
+            <div class="ai-controls">
+              <button id="generateEstimateBtn" class="btn btn-success btn-large">
+                ✨ Сгенерировать смету
+              </button>
             </div>
-        </main>
 
-        <footer>
-            <p>© 2025 Смета - Программа для составления смет</p>
-            <button id="keyboardShortcutsBtn" class="shortcuts-help-btn" title="Горячие клавиши (?)">⌨️</button>
-        </footer>
+            <div id="aiStatus" class="ai-status" style="display: none">
+              <div class="loading-spinner"></div>
+              <p class="status-text">Генерация сметы...</p>
+            </div>
+
+            <div id="aiResult" class="ai-result" style="display: none">
+              <h3>Сгенерированная смета</h3>
+              <div id="aiResultContent"></div>
+              <div class="ai-actions">
+                <button id="acceptAiBtn" class="btn btn-success">✓ Принять и редактировать</button>
+                <button id="regenerateBtn" class="btn btn-secondary">
+                  🔄 Сгенерировать заново
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Edit View -->
+        <div id="editView" class="view">
+          <div class="toolbar toolbar-extended">
+            <div class="toolbar-row">
+              <button id="backToListBtn" class="btn">← Назад к списку</button>
+              <button id="undoBtn" class="btn" disabled title="Отменить (Ctrl+Z)">
+                ↶ Отменить
+              </button>
+              <button id="redoBtn" class="btn" disabled title="Повторить (Ctrl+Y)">
+                ↷ Повторить
+              </button>
+              <button id="saveEstimateBtn" class="btn btn-success">💾 Сохранить</button>
+              <button id="saveAsTemplateBtn" class="btn">📑 Сохранить как шаблон</button>
+            </div>
+            <div class="toolbar-row">
+              <button id="exportBtn" class="btn">🖨️ Печать</button>
+              <button id="exportExcelBtn" class="btn">📊 Экспорт в Excel</button>
+              <button id="exportJsonBtn" class="btn">📄 Экспорт в JSON</button>
+              <button id="duplicateEstimateBtn" class="btn">📋 Дублировать</button>
+            </div>
+          </div>
+
+          <div class="estimate-form">
+            <div class="form-header">
+              <div class="form-group">
+                <label for="estimateTitle">Название сметы:</label>
+                <input
+                  type="text"
+                  id="estimateTitle"
+                  class="form-control"
+                  placeholder="Введите название сметы"
+                />
+              </div>
+              <div class="form-group">
+                <label for="estimateDate">Дата:</label>
+                <input type="date" id="estimateDate" class="form-control" />
+              </div>
+              <div class="form-group">
+                <label for="estimateClient">Клиент:</label>
+                <input
+                  type="text"
+                  id="estimateClient"
+                  class="form-control"
+                  placeholder="Имя клиента"
+                />
+              </div>
+              <div class="form-group">
+                <label for="estimateProject">Проект:</label>
+                <input
+                  type="text"
+                  id="estimateProject"
+                  class="form-control"
+                  placeholder="Название проекта"
+                />
+              </div>
+            </div>
+
+            <div class="line-items">
+              <h3>Позиции сметы</h3>
+              <button id="addItemBtn" class="btn btn-secondary">➕ Добавить позицию</button>
+
+              <div id="itemsContainer" class="items-container">
+                <!-- Items will be added dynamically -->
+              </div>
+            </div>
+
+            <div class="totals">
+              <div class="total-row">
+                <span class="total-label">Итого:</span>
+                <span id="totalAmount" class="total-amount">0.00 ₽</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <footer>
+        <p>© 2025 Смета - Программа для составления смет</p>
+        <button id="keyboardShortcutsBtn" class="shortcuts-help-btn" title="Горячие клавиши (?)">
+          ⌨️
+        </button>
+      </footer>
     </div>
 
     <script src="app.js"></script>
-    
+
     <!-- PWA Install Prompt -->
-    <div id="installPrompt" class="install-prompt" style="display: none;">
-        <div class="install-prompt-content">
-            <button id="installClose" class="install-close">✕</button>
-            <div class="install-icon">📱</div>
-            <h3>Установить приложение</h3>
-            <p>Установите Смета на ваше устройство для быстрого доступа</p>
-            <button id="installButton" class="btn btn-primary btn-large">Установить</button>
-        </div>
+    <div id="installPrompt" class="install-prompt" style="display: none">
+      <div class="install-prompt-content">
+        <button id="installClose" class="install-close">✕</button>
+        <div class="install-icon">📱</div>
+        <h3>Установить приложение</h3>
+        <p>Установите Смета на ваше устройство для быстрого доступа</p>
+        <button id="installButton" class="btn btn-primary btn-large">Установить</button>
+      </div>
     </div>
-    
+
     <!-- Keyboard Shortcuts Modal -->
-    <div id="shortcutsModal" class="shortcuts-modal" style="display: none;">
-        <div class="shortcuts-modal-content">
-            <button id="shortcutsClose" class="shortcuts-close">✕</button>
-            <h2>⌨️ Горячие клавиши</h2>
-            <div class="shortcuts-list">
-                <div class="shortcut-item">
-                    <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>N</kbd></span>
-                    <span class="shortcut-desc">Создать новую смету</span>
-                </div>
-                <div class="shortcut-item">
-                    <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>K</kbd></span>
-                    <span class="shortcut-desc">Создать смету с ИИ</span>
-                </div>
-                <div class="shortcut-item">
-                    <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>S</kbd></span>
-                    <span class="shortcut-desc">Сохранить смету</span>
-                </div>
-                <div class="shortcut-item">
-                    <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>Z</kbd></span>
-                    <span class="shortcut-desc">Отменить действие</span>
-                </div>
-                <div class="shortcut-item">
-                    <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>Y</kbd></span>
-                    <span class="shortcut-desc">Повторить действие</span>
-                </div>
-                <div class="shortcut-item">
-                    <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>P</kbd></span>
-                    <span class="shortcut-desc">Печать/Экспорт</span>
-                </div>
-                <div class="shortcut-item">
-                    <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>F</kbd></span>
-                    <span class="shortcut-desc">Поиск</span>
-                </div>
-                <div class="shortcut-item">
-                    <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>D</kbd></span>
-                    <span class="shortcut-desc">Переключить тему</span>
-                </div>
-                <div class="shortcut-item">
-                    <span class="shortcut-keys"><kbd>Esc</kbd></span>
-                    <span class="shortcut-desc">Вернуться к списку</span>
-                </div>
-                <div class="shortcut-item">
-                    <span class="shortcut-keys"><kbd>?</kbd></span>
-                    <span class="shortcut-desc">Показать это окно</span>
-                </div>
-            </div>
-            <p class="shortcuts-note">💡 На Mac используйте <kbd>Cmd</kbd> вместо <kbd>Ctrl</kbd></p>
+    <div id="shortcutsModal" class="shortcuts-modal" style="display: none">
+      <div class="shortcuts-modal-content">
+        <button id="shortcutsClose" class="shortcuts-close">✕</button>
+        <h2>⌨️ Горячие клавиши</h2>
+        <div class="shortcuts-list">
+          <div class="shortcut-item">
+            <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>N</kbd></span>
+            <span class="shortcut-desc">Создать новую смету</span>
+          </div>
+          <div class="shortcut-item">
+            <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>K</kbd></span>
+            <span class="shortcut-desc">Создать смету с ИИ</span>
+          </div>
+          <div class="shortcut-item">
+            <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>S</kbd></span>
+            <span class="shortcut-desc">Сохранить смету</span>
+          </div>
+          <div class="shortcut-item">
+            <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>Z</kbd></span>
+            <span class="shortcut-desc">Отменить действие</span>
+          </div>
+          <div class="shortcut-item">
+            <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>Y</kbd></span>
+            <span class="shortcut-desc">Повторить действие</span>
+          </div>
+          <div class="shortcut-item">
+            <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>P</kbd></span>
+            <span class="shortcut-desc">Печать/Экспорт</span>
+          </div>
+          <div class="shortcut-item">
+            <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>F</kbd></span>
+            <span class="shortcut-desc">Поиск</span>
+          </div>
+          <div class="shortcut-item">
+            <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>D</kbd></span>
+            <span class="shortcut-desc">Переключить тему</span>
+          </div>
+          <div class="shortcut-item">
+            <span class="shortcut-keys"><kbd>Esc</kbd></span>
+            <span class="shortcut-desc">Вернуться к списку</span>
+          </div>
+          <div class="shortcut-item">
+            <span class="shortcut-keys"><kbd>?</kbd></span>
+            <span class="shortcut-desc">Показать это окно</span>
+          </div>
         </div>
+        <p class="shortcuts-note">💡 На Mac используйте <kbd>Cmd</kbd> вместо <kbd>Ctrl</kbd></p>
+      </div>
     </div>
-    
+
     <!-- Service Worker Registration -->
     <script>
-        // Register Service Worker
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(registration => {
-                        console.log('✓ Service Worker registered:', registration.scope);
-                        
-                        // Check for updates periodically
-                        setInterval(() => {
-                            registration.update();
-                        }, 60000); // Check every minute
-                    })
-                    .catch(error => {
-                        console.log('✗ Service Worker registration failed:', error);
-                    });
+      // Register Service Worker
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker
+            .register('/sw.js')
+            .then(registration => {
+              console.log('✓ Service Worker registered:', registration.scope);
+
+              // Check for updates periodically
+              setInterval(() => {
+                registration.update();
+              }, 60000); // Check every minute
+            })
+            .catch(error => {
+              console.log('✗ Service Worker registration failed:', error);
             });
+        });
+      }
+
+      // PWA Install Prompt
+      let deferredPrompt;
+      const installPrompt = document.getElementById('installPrompt');
+      const installButton = document.getElementById('installButton');
+      const installClose = document.getElementById('installClose');
+
+      window.addEventListener('beforeinstallprompt', e => {
+        // Prevent the mini-infobar from appearing on mobile
+        e.preventDefault();
+        // Stash the event so it can be triggered later
+        deferredPrompt = e;
+
+        // Show install prompt after 3 seconds
+        setTimeout(() => {
+          if (!localStorage.getItem('installPromptDismissed')) {
+            installPrompt.style.display = 'flex';
+          }
+        }, 3000);
+      });
+
+      installButton.addEventListener('click', async () => {
+        if (!deferredPrompt) {
+          return;
         }
-        
-        // PWA Install Prompt
-        let deferredPrompt;
-        const installPrompt = document.getElementById('installPrompt');
-        const installButton = document.getElementById('installButton');
-        const installClose = document.getElementById('installClose');
-        
-        window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevent the mini-infobar from appearing on mobile
-            e.preventDefault();
-            // Stash the event so it can be triggered later
-            deferredPrompt = e;
-            
-            // Show install prompt after 3 seconds
-            setTimeout(() => {
-                if (!localStorage.getItem('installPromptDismissed')) {
-                    installPrompt.style.display = 'flex';
-                }
-            }, 3000);
-        });
-        
-        installButton.addEventListener('click', async () => {
-            if (!deferredPrompt) {
-                return;
-            }
-            
-            // Show the install prompt
-            deferredPrompt.prompt();
-            
-            // Wait for the user to respond to the prompt
-            const { outcome } = await deferredPrompt.userChoice;
-            console.log(`User response to the install prompt: ${outcome}`);
-            
-            // Clear the deferredPrompt
-            deferredPrompt = null;
-            installPrompt.style.display = 'none';
-        });
-        
-        installClose.addEventListener('click', () => {
-            installPrompt.style.display = 'none';
-            localStorage.setItem('installPromptDismissed', 'true');
-        });
-        
-        // Detect if app is running as standalone (installed)
-        window.addEventListener('DOMContentLoaded', () => {
-            const isStandalone = window.matchMedia('(display-mode: standalone)').matches 
-                || window.navigator.standalone 
-                || document.referrer.includes('android-app://');
-            
-            if (isStandalone) {
-                console.log('✓ Running as installed PWA');
-                document.body.classList.add('standalone');
-            }
-        });
-        
-        // Handle URL parameters for shortcuts
-        const urlParams = new URLSearchParams(window.location.search);
-        const action = urlParams.get('action');
-        
-        window.addEventListener('DOMContentLoaded', () => {
-            if (action === 'new') {
-                // Trigger manual estimate creation
-                document.getElementById('createManualBtn')?.click();
-            } else if (action === 'ai') {
-                // Trigger AI estimate creation
-                document.getElementById('createWithAiBtn')?.click();
-            }
-        });
+
+        // Show the install prompt
+        deferredPrompt.prompt();
+
+        // Wait for the user to respond to the prompt
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`User response to the install prompt: ${outcome}`);
+
+        // Clear the deferredPrompt
+        deferredPrompt = null;
+        installPrompt.style.display = 'none';
+      });
+
+      installClose.addEventListener('click', () => {
+        installPrompt.style.display = 'none';
+        localStorage.setItem('installPromptDismissed', 'true');
+      });
+
+      // Detect if app is running as standalone (installed)
+      window.addEventListener('DOMContentLoaded', () => {
+        const isStandalone =
+          window.matchMedia('(display-mode: standalone)').matches ||
+          window.navigator.standalone ||
+          document.referrer.includes('android-app://');
+
+        if (isStandalone) {
+          console.log('✓ Running as installed PWA');
+          document.body.classList.add('standalone');
+        }
+      });
+
+      // Handle URL parameters for shortcuts
+      const urlParams = new URLSearchParams(window.location.search);
+      const action = urlParams.get('action');
+
+      window.addEventListener('DOMContentLoaded', () => {
+        if (action === 'new') {
+          // Trigger manual estimate creation
+          document.getElementById('createManualBtn')?.click();
+        } else if (action === 'ai') {
+          // Trigger AI estimate creation
+          document.getElementById('createWithAiBtn')?.click();
+        }
+      });
     </script>
-</body>
+  </body>
 </html>

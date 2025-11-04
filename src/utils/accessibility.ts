@@ -59,7 +59,10 @@ export class AccessibilityManager {
   }
 
   // Check color contrast
-  checkContrast(foreground: string, background: string): {
+  checkContrast(
+    foreground: string,
+    background: string
+  ): {
     ratio: number;
     wcagAA: boolean;
     wcagAAA: boolean;
@@ -68,8 +71,7 @@ export class AccessibilityManager {
     const bgLuminance = this.getLuminance(background);
 
     const ratio =
-      (Math.max(fgLuminance, bgLuminance) + 0.05) /
-      (Math.min(fgLuminance, bgLuminance) + 0.05);
+      (Math.max(fgLuminance, bgLuminance) + 0.05) / (Math.min(fgLuminance, bgLuminance) + 0.05);
 
     return {
       ratio: Math.round(ratio * 100) / 100,
@@ -129,11 +131,7 @@ export class AccessibilityManager {
   }
 
   // Keyboard navigation helper
-  handleArrowNavigation(
-    items: HTMLElement[],
-    currentIndex: number,
-    key: string
-  ): number {
+  handleArrowNavigation(items: HTMLElement[], currentIndex: number, key: string): number {
     let newIndex = currentIndex;
 
     switch (key) {

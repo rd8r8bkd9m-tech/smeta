@@ -18,10 +18,10 @@ describe('AI Engine', () => {
       category: 'Commercial',
       items: [
         { name: 'Paint', totalPrice: 5000 },
-        { name: 'Flooring', totalPrice: 10000 }
+        { name: 'Flooring', totalPrice: 10000 },
       ],
       total: 15000,
-      date: '2025-01-15'
+      date: '2025-01-15',
     },
     {
       id: '2',
@@ -29,17 +29,17 @@ describe('AI Engine', () => {
       category: 'Commercial',
       items: [
         { name: 'Steel', totalPrice: 50000 },
-        { name: 'Concrete', totalPrice: 30000 }
+        { name: 'Concrete', totalPrice: 30000 },
       ],
       total: 80000,
-      date: '2025-02-01'
-    }
+      date: '2025-02-01',
+    },
   ];
 
   it('should predict costs based on historical data', () => {
     const items = [
       { name: 'Drywall', totalPrice: 8000 },
-      { name: 'Paint', totalPrice: 4000 }
+      { name: 'Paint', totalPrice: 4000 },
     ];
 
     const prediction = aiEngine.predictCost(items, 'Commercial', mockEstimates);
@@ -57,7 +57,7 @@ describe('AI Engine', () => {
       title: 'Small Office',
       total: 500000, // Unusually high
       items: [{ name: 'Paint', totalPrice: 500000 }],
-      category: 'Commercial'
+      category: 'Commercial',
     };
 
     const anomalies = aiEngine.detectAnomalies(suspiciousEstimate, mockEstimates);
@@ -75,10 +75,8 @@ describe('AI Engine', () => {
       id: '4',
       title: 'Office Renovation',
       category: '',
-      items: [
-        { name: 'Paint', totalPrice: 5000 }
-      ],
-      total: 5000
+      items: [{ name: 'Paint', totalPrice: 5000 }],
+      total: 5000,
     };
 
     const suggestions = aiEngine.generateSuggestions(estimate, mockEstimates);
@@ -102,10 +100,7 @@ describe('AI Engine', () => {
   });
 
   it('should process natural language queries', () => {
-    const results = aiEngine.processNaturalQuery(
-      'покажи сметы дороже 20000',
-      mockEstimates
-    );
+    const results = aiEngine.processNaturalQuery('покажи сметы дороже 20000', mockEstimates);
 
     expect(results).toBeInstanceOf(Array);
     results.forEach(estimate => {
@@ -149,7 +144,7 @@ describe('Collaboration Manager', () => {
       collab.broadcastChange({
         type: 'edit',
         targetId: 'estimate-1',
-        data: { title: 'Updated' }
+        data: { title: 'Updated' },
       });
     }).not.toThrow();
   });
@@ -167,7 +162,7 @@ describe('Offline Sync Manager', () => {
       id: 'test-1',
       title: 'Test Estimate',
       items: [],
-      total: 0
+      total: 0,
     };
 
     await offlineSyncManager.saveEstimate(estimate);
@@ -214,7 +209,10 @@ describe('Advanced Visualization', () => {
   it('should create heatmap', () => {
     expect(() => {
       viz.createHeatmap(
-        [[10, 20], [30, 40]],
+        [
+          [10, 20],
+          [30, 40],
+        ],
         { x: ['A', 'B'], y: ['1', '2'] }
       );
     }).not.toThrow();
@@ -222,9 +220,7 @@ describe('Advanced Visualization', () => {
 
   it('should create bubble chart', () => {
     expect(() => {
-      viz.createBubbleChart([
-        { x: 10, y: 20, size: 30, label: 'Test' }
-      ], { animated: false });
+      viz.createBubbleChart([{ x: 10, y: 20, size: 30, label: 'Test' }], { animated: false });
     }).not.toThrow();
   });
 
@@ -232,7 +228,7 @@ describe('Advanced Visualization', () => {
     expect(() => {
       viz.createRadarChart([
         { label: 'A', value: 80, max: 100 },
-        { label: 'B', value: 60, max: 100 }
+        { label: 'B', value: 60, max: 100 },
       ]);
     }).not.toThrow();
   });
@@ -241,7 +237,7 @@ describe('Advanced Visualization', () => {
     expect(() => {
       viz.createTreemap([
         { label: 'Category 1', value: 100 },
-        { label: 'Category 2', value: 200 }
+        { label: 'Category 2', value: 200 },
       ]);
     }).not.toThrow();
   });
@@ -286,7 +282,7 @@ describe('Enterprise Manager', () => {
 
   it('should assign and check roles', () => {
     enterpriseManager.assignRole('user-1', 'editor');
-    
+
     const hasPermission = enterpriseManager.hasPermission('user-1', 'estimate:create');
     expect(hasPermission).toBe(true);
   });
@@ -301,7 +297,7 @@ describe('Enterprise Manager', () => {
 
   it('should generate compliance report', async () => {
     await enterpriseManager.logAction('user-1', 'User', 'create', 'estimate', 'est-1');
-    
+
     const report = await enterpriseManager.generateComplianceReport(
       new Date('2025-01-01'),
       new Date('2025-12-31')
@@ -334,7 +330,7 @@ describe('Enterprise Manager', () => {
 
   it('should clear old logs', async () => {
     await enterpriseManager.logAction('user-1', 'User', 'create', 'estimate', 'est-1');
-    
+
     const removed = enterpriseManager.clearOldLogs(0); // Remove all
     expect(removed).toBeGreaterThanOrEqual(0);
   });
@@ -344,7 +340,7 @@ describe('Integration Tests', () => {
   it('should integrate AI with analytics', () => {
     const estimates = [
       { id: '1', total: 10000, items: [], date: '2025-01-01', category: 'A' },
-      { id: '2', total: 20000, items: [], date: '2025-02-01', category: 'B' }
+      { id: '2', total: 20000, items: [], date: '2025-02-01', category: 'B' },
     ];
 
     const analysis = aiEngine.analyzeSpendingPatterns(estimates);
@@ -356,7 +352,7 @@ describe('Integration Tests', () => {
       id: 'collab-1',
       title: 'Collaborative Estimate',
       items: [],
-      total: 0
+      total: 0,
     };
 
     // Save offline

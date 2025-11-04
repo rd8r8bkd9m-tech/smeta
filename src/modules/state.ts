@@ -16,7 +16,7 @@ export class StateManager {
 
   private loadInitialState(): AppState {
     const savedEstimates = localStorage.getItem('estimates');
-    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' || 'light';
+    const savedTheme = (localStorage.getItem('theme') as 'light' | 'dark') || 'light';
 
     return {
       estimates: savedEstimates ? JSON.parse(savedEstimates) : [],

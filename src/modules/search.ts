@@ -54,25 +54,19 @@ export class AdvancedSearch {
 
     // Category filter
     if (options.categories && options.categories.length > 0) {
-      results = results.filter(
-        est => est.category && options.categories!.includes(est.category)
-      );
+      results = results.filter(est => est.category && options.categories!.includes(est.category));
     }
 
     // Tag filter
     if (options.tags && options.tags.length > 0) {
       results = results.filter(
-        est =>
-          est.tags &&
-          est.tags.some(tag => options.tags!.includes(tag))
+        est => est.tags && est.tags.some(tag => options.tags!.includes(tag))
       );
     }
 
     // Client filter
     if (options.clients && options.clients.length > 0) {
-      results = results.filter(
-        est => est.client && options.clients!.includes(est.client)
-      );
+      results = results.filter(est => est.client && options.clients!.includes(est.client));
     }
 
     return results;

@@ -98,9 +98,7 @@ describe('Analytics', () => {
 
     it('should sort categories by value descending', () => {
       const stats = analytics.calculateStats(sampleEstimates);
-      expect(stats.categoryBreakdown[0].value).toBeGreaterThan(
-        stats.categoryBreakdown[1].value
-      );
+      expect(stats.categoryBreakdown[0].value).toBeGreaterThan(stats.categoryBreakdown[1].value);
     });
   });
 
@@ -114,9 +112,7 @@ describe('Analytics', () => {
 
     it('should sort clients by value descending', () => {
       const stats = analytics.calculateStats(sampleEstimates);
-      expect(stats.topClients[0].value).toBeGreaterThanOrEqual(
-        stats.topClients[1].value
-      );
+      expect(stats.topClients[0].value).toBeGreaterThanOrEqual(stats.topClients[1].value);
     });
 
     it('should limit to top 10 clients', () => {

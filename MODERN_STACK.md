@@ -5,35 +5,41 @@ This document describes the modern development stack introduced to the Smeta PWA
 ## Technology Stack
 
 ### Build Tools
+
 - **Vite 5.0** - Next-generation frontend tooling
   - Lightning-fast HMR (Hot Module Replacement)
   - Optimized builds with Rollup
   - Native ES modules support
 
 ### Language & Type Safety
+
 - **TypeScript 5.3** - Static typing for better code quality
   - Full type definitions for all modules
   - Strict mode enabled
   - Enhanced IDE support
 
 ### Code Quality
+
 - **ESLint 8.54** - Linting with TypeScript support
 - **Prettier 3.1** - Code formatting
 - **Husky** - Git hooks for pre-commit checks (optional)
 
 ### Testing
+
 - **Vitest 1.0** - Fast unit testing framework
   - Compatible with Jest
   - ES modules support
   - Built-in code coverage
 
 ### PWA Enhancement
+
 - **vite-plugin-pwa** - Enhanced PWA capabilities
   - Automatic service worker generation
   - Workbox integration
   - Optimized caching strategies
 
 ### Storage
+
 - **IndexedDB (via idb)** - Modern client-side database
   - Better than localStorage for large data
   - Async operations
@@ -128,26 +134,31 @@ npm run type-check
 ## Key Features
 
 ### 1. Module System
+
 - ES6 modules for better code organization
 - Tree-shaking for smaller bundles
 - Dynamic imports for code splitting
 
 ### 2. Type Safety
+
 - Full TypeScript support
 - Interface definitions for all data structures
 - Type-safe state management
 
 ### 3. Testing Infrastructure
+
 - Unit tests with Vitest
 - Code coverage reporting
 - Fast test execution
 
 ### 4. Modern PWA
+
 - Optimized service worker with Workbox
 - Runtime caching strategies
 - Background sync support
 
 ### 5. CI/CD Pipeline
+
 - Automated linting and testing
 - Build verification
 - Coverage reporting
@@ -156,16 +167,19 @@ npm run type-check
 ## Performance Optimizations
 
 ### Bundle Optimization
+
 - Code splitting for vendor libraries
 - Tree-shaking unused code
 - Minification with Terser
 
 ### Caching Strategy
+
 - Network-first for API calls
 - Cache-first for static assets
 - Background updates
 
 ### Loading Performance
+
 - Lazy loading of routes
 - Preloading critical resources
 - Optimized asset delivery
@@ -173,18 +187,21 @@ npm run type-check
 ## Best Practices
 
 ### Code Organization
+
 1. One feature per module
 2. Separate concerns (UI, logic, state)
 3. Reusable utility functions
 4. Type-safe interfaces
 
 ### State Management
+
 1. Centralized state with StateManager
 2. Immutable state updates
 3. Reactive subscriptions
 4. Persistent storage
 
 ### Testing Strategy
+
 1. Unit tests for business logic
 2. Integration tests for workflows
 3. Coverage > 80%
@@ -193,6 +210,7 @@ npm run type-check
 ## Migration Guide
 
 ### From Legacy Code
+
 The modern stack coexists with the legacy `app.js` file. To migrate:
 
 1. **Identify features** in app.js
@@ -203,6 +221,7 @@ The modern stack coexists with the legacy `app.js` file. To migrate:
 6. **Deprecate** old code
 
 ### Incremental Adoption
+
 - Start with new features in the modern stack
 - Gradually refactor existing code
 - Maintain backward compatibility
@@ -211,18 +230,21 @@ The modern stack coexists with the legacy `app.js` file. To migrate:
 ## Future Enhancements
 
 ### Short Term
+
 - [ ] Complete migration from app.js
 - [ ] Add E2E tests with Playwright
 - [ ] Implement service worker strategies
 - [ ] Add performance monitoring
 
 ### Medium Term
+
 - [ ] GraphQL API integration
 - [ ] Real-time collaboration
 - [ ] Offline-first architecture
 - [ ] Advanced caching
 
 ### Long Term
+
 - [ ] Web Components
 - [ ] Server-side rendering
 - [ ] Native mobile apps
@@ -249,6 +271,7 @@ When contributing to the modern stack:
 ## Support
 
 For questions or issues with the modern stack:
+
 - Open an issue on GitHub
 - Check the documentation
 - Review existing PRs

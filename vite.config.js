@@ -19,14 +19,14 @@ export default defineConfig({
           {
             src: 'icons/icon-192x192.png',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/png',
           },
           {
             src: 'icons/icon-512x512.png',
             sizes: '512x512',
-            type: 'image/png'
-          }
-        ]
+            type: 'image/png',
+          },
+        ],
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
@@ -38,10 +38,10 @@ export default defineConfig({
               cacheName: 'api-cache',
               expiration: {
                 maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 // 24 hours
+                maxAgeSeconds: 60 * 60 * 24, // 24 hours
               },
-              networkTimeoutSeconds: 10
-            }
+              networkTimeoutSeconds: 10,
+            },
           },
           {
             urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
@@ -50,26 +50,26 @@ export default defineConfig({
               cacheName: 'image-cache',
               expiration: {
                 maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
-              }
-            }
-          }
-        ]
-      }
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+              },
+            },
+          },
+        ],
+      },
     }),
     viteCompression({
       algorithm: 'gzip',
-      ext: '.gz'
+      ext: '.gz',
     }),
     viteCompression({
       algorithm: 'brotliCompress',
-      ext: '.br'
+      ext: '.br',
     }),
     visualizer({
       open: process.env.ANALYZE === 'true',
       gzipSize: true,
-      brotliSize: true
-    })
+      brotliSize: true,
+    }),
   ],
   build: {
     target: 'esnext',
@@ -78,26 +78,26 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          'vendor': ['idb'],
-          'analytics': ['src/modules/analytics.ts'],
-          'utils': ['src/utils/helpers.ts', 'src/utils/performance.ts']
-        }
-      }
+          vendor: ['idb'],
+          analytics: ['src/modules/analytics.ts'],
+          utils: ['src/utils/helpers.ts', 'src/utils/performance.ts'],
+        },
+      },
     },
     terserOptions: {
       compress: {
         drop_console: true,
-        drop_debugger: true
-      }
+        drop_debugger: true,
+      },
     },
-    chunkSizeWarningLimit: 1000
+    chunkSizeWarningLimit: 1000,
   },
   server: {
     port: 3000,
     open: true,
-    cors: true
+    cors: true,
   },
   preview: {
-    port: 3001
-  }
+    port: 3001,
+  },
 });

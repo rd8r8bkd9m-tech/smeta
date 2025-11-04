@@ -24,6 +24,7 @@ Advanced analytics with built-in charting capabilities:
   - Canvas-based rendering (no external dependencies)
 
 **Usage:**
+
 ```typescript
 import { analytics } from './modules/analytics';
 
@@ -58,6 +59,7 @@ Powerful search with multiple filter options:
   - Highlight matches in results
 
 **Usage:**
+
 ```typescript
 import { advancedSearch } from './modules/search';
 
@@ -65,7 +67,7 @@ const results = advancedSearch.search(estimates, {
   query: 'office',
   dateFrom: '2025-01-01',
   minValue: 50000,
-  categories: ['Commercial']
+  categories: ['Commercial'],
 });
 
 const facets = advancedSearch.extractFacets(estimates);
@@ -93,21 +95,17 @@ Tools for optimizing application performance:
   - Performance monitoring
 
 **Usage:**
+
 ```typescript
 import { VirtualScroll, memoize, perfMonitor } from './utils/performance';
 
 // Memoize expensive calculations
-const calculateTotal = memoize((items) => {
+const calculateTotal = memoize(items => {
   return items.reduce((sum, item) => sum + item.price, 0);
 });
 
 // Virtual scrolling
-const vs = new VirtualScroll(
-  container,
-  items,
-  itemHeight,
-  renderItem
-);
+const vs = new VirtualScroll(container, items, itemHeight, renderItem);
 
 // Performance tracking
 perfMonitor.mark('start');
@@ -142,6 +140,7 @@ Comprehensive accessibility features:
   - Tab order management
 
 **Usage:**
+
 ```typescript
 import { a11y } from './utils/accessibility';
 
@@ -205,10 +204,12 @@ console.log(`WCAG AA: ${contrast.wcagAA}`);
 ### Enhanced Testing
 
 **New Test Files:**
+
 - `src/tests/analytics.test.ts` - Analytics module tests
 - `src/tests/search.test.ts` - Search functionality tests
 
 **Coverage:**
+
 - Statistical calculations
 - Search and filtering
 - Facet extraction
@@ -230,6 +231,7 @@ console.log(`WCAG AA: ${contrast.wcagAA}`);
 ### Bundle Size Reduction
 
 With compression and optimization:
+
 - **JavaScript**: ~40% smaller with Brotli
 - **CSS**: ~50% smaller with Gzip
 - **Total**: Significant load time improvement
@@ -282,6 +284,7 @@ npm run test:coverage # Coverage report
 ### Type Safety
 
 All new modules fully typed:
+
 - Complete TypeScript interfaces
 - Generic type support
 - Type inference
@@ -301,17 +304,17 @@ import { analytics } from './modules/analytics';
 
 function renderDashboard(estimates) {
   const stats = analytics.calculateStats(estimates);
-  
+
   // Display stats
   document.getElementById('total').textContent = stats.totalValue;
   document.getElementById('average').textContent = stats.averageValue;
-  
+
   // Render monthly trend chart
   const canvas = document.getElementById('trend-chart');
   const data = stats.monthlyTrends.map(t => t.value);
   const labels = stats.monthlyTrends.map(t => t.month);
   analytics.generateChart(canvas, data, labels, 'line');
-  
+
   // Render category breakdown
   const pieCanvas = document.getElementById('category-chart');
   const catData = stats.categoryBreakdown.map(c => c.value);
@@ -328,22 +331,22 @@ import { advancedSearch } from './modules/search';
 function setupSearch(estimates) {
   // Extract facets for filters
   const facets = advancedSearch.extractFacets(estimates);
-  
+
   // Populate filter UI
   populateCategories(facets.categories);
   populateTags(facets.tags);
   setDateRange(facets.dateRange);
   setValueRange(facets.valueRange);
-  
+
   // Search on input
-  searchInput.addEventListener('input', (e) => {
+  searchInput.addEventListener('input', e => {
     const results = advancedSearch.search(estimates, {
       query: e.target.value,
       categories: getSelectedCategories(),
       dateFrom: getDateFrom(),
-      dateTo: getDateTo()
+      dateTo: getDateTo(),
     });
-    
+
     renderResults(results);
   });
 }
@@ -369,9 +372,9 @@ function setupVirtualList(container, estimates) {
       return div;
     }
   );
-  
+
   // Update when estimates change
-  return (newEstimates) => vs.update(newEstimates);
+  return newEstimates => vs.update(newEstimates);
 }
 ```
 
@@ -383,13 +386,13 @@ import { a11y } from './utils/accessibility';
 function setupModal(modalElement) {
   // Add skip link
   a11y.addSkipLink();
-  
+
   // Trap focus in modal
   const releaseFocus = a11y.trapFocus(modalElement);
-  
+
   // Announce when modal opens
   a11y.announce('Модальное окно открыто', 'polite');
-  
+
   // Clean up on close
   closeBtn.addEventListener('click', () => {
     releaseFocus();
@@ -449,6 +452,7 @@ function setupModal(modalElement) {
 ## Support
 
 For questions or issues:
+
 - Check the module documentation
 - Review test files for examples
 - Open an issue on GitHub
