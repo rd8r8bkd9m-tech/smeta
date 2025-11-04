@@ -31,6 +31,7 @@ interface SmetaDB extends DBSchema {
       blob: Blob;
       uploadedAt: Date;
     };
+    indexes: { 'by-estimate': string };
   };
 }
 
@@ -259,7 +260,7 @@ export class OfflineSyncManager {
 
         // Request background sync if supported
         if ('sync' in registration) {
-          await registration.sync.register('sync-estimates');
+          await (registration as any).sync.register('sync-estimates');
           logger.success('Background sync registered');
         }
       } catch (error) {
@@ -302,7 +303,7 @@ export class OfflineSyncManager {
     if (this.db) {
       const tx = this.db.transaction('attachments', 'readonly');
       const index = tx.store.index('by-estimate');
-      return await index.getAll(estimateId);
+      return await index.getAll(estimateId as any);
     }
 
     return [];

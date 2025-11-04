@@ -3,7 +3,7 @@
  * Tests AI, Collaboration, Offline Sync, Visualization, and Enterprise modules
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { aiEngine } from '../modules/ai-engine';
 import { createCollaborationManager } from '../modules/collaboration';
 import { offlineSyncManager } from '../modules/offline-sync';

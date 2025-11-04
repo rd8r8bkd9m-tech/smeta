@@ -124,4 +124,3 @@ export interface SpendingAnalysis {
   seasonality: string[];
   forecast: Array<{ month: string; predicted: number; confidence: number }>;
 }
-

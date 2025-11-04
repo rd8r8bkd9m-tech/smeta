@@ -27,9 +27,17 @@ export interface SmartSuggestion {
   priority: number;
 }
 
+interface MLModel {
+  weights: {
+    itemCount: number;
+    avgItemCost: number;
+    category: number;
+    historical: number;
+  };
+}
+
 export class AIEngine {
-  private model: Record<string, unknown> | null = null;
-  private trainingData: Estimate[] = [];
+  private model: MLModel | null = null;
 
   constructor() {
     this.initializeModel();
@@ -54,6 +62,10 @@ export class AIEngine {
    * Predict project cost based on historical data and current inputs
    */
   public predictCost(items: any[], category: string, historicalEstimates: any[]): PredictionResult {
+    if (!this.model) {
+      throw new Error('Model not initialized');
+    }
+
     const itemCount = items.length;
     const totalCost = items.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
     const avgItemCost = itemCount > 0 ? totalCost / itemCount : 0;
@@ -167,7 +179,7 @@ export class AIEngine {
     commonItems.forEach(commonItem => {
       if (
         !currentItemNames.some(
-          name => this.similarityScore(name, commonItem.name.toLowerCase()) > 0.8
+          (name: string) => this.similarityScore(name, commonItem.name.toLowerCase()) > 0.8
         )
       ) {
         suggestions.push({
@@ -301,8 +313,8 @@ export class AIEngine {
     const totalEstimates = estimates.length;
 
     estimates.forEach(estimate => {
-      const uniqueNames = new Set(estimate.items.map((item: any) => item.name.toLowerCase()));
-      uniqueNames.forEach(name => {
+      const uniqueNames = new Set<string>(estimate.items.map((item: any) => item.name.toLowerCase()));
+      uniqueNames.forEach((name: string) => {
         itemCounts.set(name, (itemCounts.get(name) || 0) + 1);
       });
     });
