@@ -48,6 +48,9 @@ let isOnline = navigator.onLine;
 let touchStartY = 0;
 let isPulling = false;
 
+// Test API Key for development
+const TEST_API_KEY = 'AIzaSyAb8RN6KlteMjDAglrWK7cJZBcFVZPaRnZ3dDUpmnhY8eRmXFBg';
+
 // DOM Elements
 const listView = document.getElementById('listView');
 const editView = document.getElementById('editView');
@@ -155,6 +158,9 @@ function loadApiKey() {
   const apiKey = localStorage.getItem('gemini_api_key');
   if (apiKey) {
     document.getElementById('aiApiKey').value = apiKey;
+  } else {
+    // Load test API key for development
+    document.getElementById('aiApiKey').value = TEST_API_KEY;
   }
 }
 
@@ -338,12 +344,13 @@ function duplicateEstimate() {
 
 // AI Generation Functions
 async function generateEstimateWithAI() {
-  const apiKey = document.getElementById('aiApiKey').value.trim();
+  let apiKey = document.getElementById('aiApiKey').value.trim();
   const description = document.getElementById('aiDescription').value.trim();
 
+  // Use test API key if no key is provided
   if (!apiKey) {
-    alert('Пожалуйста, введите API ключ Gemini');
-    return;
+    apiKey = TEST_API_KEY;
+    document.getElementById('aiApiKey').value = apiKey;
   }
 
   if (!description) {
