@@ -4,6 +4,15 @@ let currentEstimate = null;
 let editingIndex = -1;
 let generatedEstimateData = null;
 
+// Undo/Redo State
+let undoStack = [];
+let redoStack = [];
+const MAX_UNDO_STACK = 50;
+
+// Auto-save State
+let autoSaveTimer = null;
+let lastSavedState = null;
+
 // Enterprise Features State
 let templates = [];
 let estimateHistory = {}; // version history for each estimate
@@ -18,6 +27,7 @@ let sortOrder = 'desc'; // asc, desc
 
 // Advanced Features State
 let selectedEstimatesForComparison = []; // Multiple estimate comparison
+let selectedEstimatesForBulk = []; // Bulk operations selection
 let favorites = []; // Favorite estimates
 let recentlyViewed = []; // Recently viewed estimates
 let notifications = []; // System notifications
@@ -54,6 +64,9 @@ document.addEventListener('DOMContentLoaded', () => {
     loadApiKey();
     initializePWAFeatures();
     initializeEnterpriseFeatures();
+    initializeDarkMode();
+    initializeAutoSave();
+    loadDraft(); // Check for unsaved drafts
 });
 
 // Event Listeners
@@ -71,6 +84,10 @@ function initializeEventListeners() {
     document.getElementById('closeDashboardBtn').addEventListener('click', showListView);
     document.getElementById('closeTemplatesBtn').addEventListener('click', showListView);
     
+    // Bulk operations
+    document.getElementById('selectAllBtn').addEventListener('click', toggleSelectAll);
+    document.getElementById('bulkDeleteBtn').addEventListener('click', bulkDelete);
+    
     // Estimate actions
     document.getElementById('saveEstimateBtn').addEventListener('click', saveCurrentEstimate);
     document.getElementById('addItemBtn').addEventListener('click', addItemRow);
@@ -79,6 +96,10 @@ function initializeEventListeners() {
     document.getElementById('exportJsonBtn').addEventListener('click', exportToJSON);
     document.getElementById('saveAsTemplateBtn').addEventListener('click', saveAsTemplate);
     document.getElementById('duplicateEstimateBtn').addEventListener('click', duplicateEstimate);
+    
+    // Undo/Redo actions
+    document.getElementById('undoBtn').addEventListener('click', undo);
+    document.getElementById('redoBtn').addEventListener('click', redo);
     
     // AI generation
     document.getElementById('generateEstimateBtn').addEventListener('click', generateEstimateWithAI);
@@ -806,16 +827,24 @@ function renderEstimatesList() {
         const originalIndex = estimates.indexOf(estimate);
         const estimateId = estimate.id || originalIndex;
         const isFavorite = favorites.includes(estimateId);
-        const isSelected = selectedEstimatesForComparison.includes(estimateId);
+        const isSelectedForComparison = selectedEstimatesForComparison.includes(estimateId);
+        const isSelectedForBulk = selectedEstimatesForBulk.includes(originalIndex);
         const isRecent = recentlyViewed.includes(estimateId);
         
         return `
         <div class="estimate-card" data-index="${originalIndex}">
+            <div class="bulk-select-checkbox">
+                <input type="checkbox" 
+                       class="bulk-select" 
+                       data-index="${originalIndex}" 
+                       ${isSelectedForBulk ? 'checked' : ''}
+                       title="Выбрать для операций">
+            </div>
             <div class="comparison-checkbox">
                 <input type="checkbox" 
                        class="compare-check" 
                        data-index="${originalIndex}" 
-                       ${isSelected ? 'checked' : ''}
+                       ${isSelectedForComparison ? 'checked' : ''}
                        title="Выбрать для сравнения">
             </div>
             <h3>
@@ -850,7 +879,15 @@ function renderEstimatesList() {
     // Add click handlers to cards
     document.querySelectorAll('.estimate-card').forEach(card => {
         card.addEventListener('click', (e) => {
-            // Check if it's a checkbox
+            // Check if it's a bulk checkbox
+            if (e.target.classList.contains('bulk-select')) {
+                e.stopPropagation();
+                const index = parseInt(e.target.dataset.index);
+                toggleBulkSelection(index);
+                return;
+            }
+            
+            // Check if it's a comparison checkbox
             if (e.target.classList.contains('compare-check')) {
                 e.stopPropagation();
                 const index = parseInt(e.target.dataset.index);
@@ -1159,8 +1196,10 @@ function addItemRow(itemData = null) {
     const row = document.createElement('div');
     row.className = 'item-row';
     row.dataset.itemId = itemId;
+    row.draggable = true; // Enable drag and drop
     
     row.innerHTML = `
+        <div class="drag-handle" title="Перетащите для изменения порядка">⋮⋮</div>
         <div class="form-group">
             <label>Наименование работ/материалов:</label>
             <input type="text" class="form-control item-description" value="${item.description || ''}" placeholder="Описание позиции">
@@ -1195,19 +1234,118 @@ function addItemRow(itemData = null) {
     
     itemsContainer.appendChild(row);
     
+    // Setup drag and drop
+    setupDragAndDrop(row);
+    
     // Add event listeners for calculation
-    row.querySelectorAll('.item-quantity, .item-price').forEach(input => {
+    row.querySelectorAll('.item-quantity, .item-price, .item-description, .item-unit').forEach(input => {
         input.addEventListener('input', () => {
             updateItemTotal(row);
             calculateTotal();
+            // Trigger auto-save on change
+            if (autoSaveTimer) clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(autoSaveEstimate, 2000); // Auto-save after 2s of inactivity
+        });
+        
+        // Save state for undo on focus out
+        input.addEventListener('blur', () => {
+            saveStateToUndo();
         });
     });
     
     // Add event listener for remove button
     row.querySelector('.remove-item-btn').addEventListener('click', () => {
+        saveStateToUndo(); // Save state before removing
         row.remove();
         calculateTotal();
     });
+}
+
+// Drag and Drop Functionality
+let draggedElement = null;
+
+function setupDragAndDrop(row) {
+    row.addEventListener('dragstart', handleDragStart);
+    row.addEventListener('dragend', handleDragEnd);
+    row.addEventListener('dragover', handleDragOver);
+    row.addEventListener('drop', handleDrop);
+    row.addEventListener('dragenter', handleDragEnter);
+    row.addEventListener('dragleave', handleDragLeave);
+}
+
+function handleDragStart(e) {
+    draggedElement = this;
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', this.innerHTML);
+    
+    // Haptic feedback
+    if ('vibrate' in navigator) {
+        navigator.vibrate(10);
+    }
+}
+
+function handleDragEnd(e) {
+    this.classList.remove('dragging');
+    
+    // Remove all drag-over classes
+    document.querySelectorAll('.item-row').forEach(row => {
+        row.classList.remove('drag-over');
+    });
+    
+    draggedElement = null;
+    
+    // Save state after reordering
+    saveStateToUndo();
+    
+    // Haptic feedback
+    if ('vibrate' in navigator) {
+        navigator.vibrate(10);
+    }
+}
+
+function handleDragOver(e) {
+    if (e.preventDefault) {
+        e.preventDefault();
+    }
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+}
+
+function handleDragEnter(e) {
+    if (this !== draggedElement) {
+        this.classList.add('drag-over');
+    }
+}
+
+function handleDragLeave(e) {
+    this.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+    if (e.stopPropagation) {
+        e.stopPropagation();
+    }
+    
+    if (draggedElement !== this) {
+        // Get the parent container
+        const container = this.parentNode;
+        
+        // Determine drop position
+        const allRows = Array.from(container.querySelectorAll('.item-row'));
+        const draggedIndex = allRows.indexOf(draggedElement);
+        const droppedIndex = allRows.indexOf(this);
+        
+        if (draggedIndex < droppedIndex) {
+            // Moving down
+            container.insertBefore(draggedElement, this.nextSibling);
+        } else {
+            // Moving up
+            container.insertBefore(draggedElement, this);
+        }
+    }
+    
+    return false;
 }
 
 function updateItemTotal(row) {
@@ -1279,7 +1417,263 @@ function saveCurrentEstimate() {
 }
 
 function exportEstimate() {
-    window.print();
+    // Enhanced print with custom styling
+    const printWindow = window.open('', '_blank');
+    const estimate = currentEstimate;
+    
+    if (!estimate) {
+        alert('Нет сметы для экспорта');
+        return;
+    }
+    
+    // Generate professional HTML for printing
+    const printContent = generatePrintHTML(estimate);
+    
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    
+    // Trigger print after content loads
+    printWindow.onload = () => {
+        printWindow.focus();
+        printWindow.print();
+    };
+}
+
+function generatePrintHTML(estimate) {
+    const itemsHTML = estimate.items.map((item, index) => {
+        const total = item.quantity * item.price;
+        return `
+            <tr>
+                <td style="text-align: center;">${index + 1}</td>
+                <td>${item.description}</td>
+                <td style="text-align: center;">${item.unit}</td>
+                <td style="text-align: right;">${formatNumber(item.quantity)}</td>
+                <td style="text-align: right;">${formatCurrency(item.price)}</td>
+                <td style="text-align: right; font-weight: 600;">${formatCurrency(total)}</td>
+            </tr>
+        `;
+    }).join('');
+    
+    const grandTotal = estimate.items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+    const currentDate = new Date().toLocaleDateString('ru-RU');
+    
+    return `
+        <!DOCTYPE html>
+        <html lang="ru">
+        <head>
+            <meta charset="UTF-8">
+            <title>${estimate.title || 'Смета'}</title>
+            <style>
+                @media print {
+                    @page { margin: 2cm; }
+                    body { margin: 0; }
+                }
+                
+                body {
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    color: #333;
+                    line-height: 1.6;
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    padding: 20px;
+                }
+                
+                .header {
+                    text-align: center;
+                    margin-bottom: 40px;
+                    padding-bottom: 20px;
+                    border-bottom: 3px solid #3b82f6;
+                }
+                
+                .header h1 {
+                    color: #3b82f6;
+                    margin: 0 0 10px 0;
+                    font-size: 28px;
+                }
+                
+                .header-info {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 20px;
+                    text-align: left;
+                    margin: 30px 0;
+                    padding: 20px;
+                    background: #f8fafc;
+                    border-radius: 8px;
+                }
+                
+                .info-item {
+                    margin: 5px 0;
+                }
+                
+                .info-label {
+                    font-weight: 600;
+                    color: #64748b;
+                    display: inline-block;
+                    min-width: 100px;
+                }
+                
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 20px 0;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }
+                
+                th {
+                    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+                    color: white;
+                    padding: 12px;
+                    text-align: left;
+                    font-weight: 600;
+                    font-size: 14px;
+                }
+                
+                td {
+                    padding: 10px 12px;
+                    border-bottom: 1px solid #e2e8f0;
+                }
+                
+                tr:nth-child(even) {
+                    background: #f8fafc;
+                }
+                
+                tr:hover {
+                    background: #f1f5f9;
+                }
+                
+                .total-section {
+                    margin-top: 30px;
+                    text-align: right;
+                }
+                
+                .total-row {
+                    display: flex;
+                    justify-content: flex-end;
+                    align-items: center;
+                    gap: 20px;
+                    padding: 15px 20px;
+                    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+                    border-radius: 8px;
+                    margin: 10px 0;
+                }
+                
+                .total-label {
+                    font-size: 18px;
+                    font-weight: 600;
+                    color: #475569;
+                }
+                
+                .total-value {
+                    font-size: 24px;
+                    font-weight: 700;
+                    color: #3b82f6;
+                }
+                
+                .footer {
+                    margin-top: 50px;
+                    padding-top: 20px;
+                    border-top: 2px solid #e2e8f0;
+                    text-align: center;
+                    color: #64748b;
+                    font-size: 12px;
+                }
+                
+                .signature-section {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 40px;
+                    margin-top: 60px;
+                }
+                
+                .signature-line {
+                    border-bottom: 1px solid #333;
+                    padding-bottom: 5px;
+                    margin-bottom: 10px;
+                    min-width: 200px;
+                }
+                
+                .signature-label {
+                    font-size: 12px;
+                    color: #64748b;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>📋 СМЕТА</h1>
+                <h2>${estimate.title || 'Без названия'}</h2>
+            </div>
+            
+            <div class="header-info">
+                <div>
+                    <div class="info-item">
+                        <span class="info-label">Дата:</span> ${estimate.date || currentDate}
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Клиент:</span> ${estimate.client || 'Не указан'}
+                    </div>
+                </div>
+                <div>
+                    <div class="info-item">
+                        <span class="info-label">Проект:</span> ${estimate.project || 'Не указан'}
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Печать:</span> ${currentDate}
+                    </div>
+                </div>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">№</th>
+                        <th>Наименование работ/материалов</th>
+                        <th style="width: 80px; text-align: center;">Ед.</th>
+                        <th style="width: 100px; text-align: right;">Кол-во</th>
+                        <th style="width: 120px; text-align: right;">Цена</th>
+                        <th style="width: 140px; text-align: right;">Сумма</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${itemsHTML}
+                </tbody>
+            </table>
+            
+            <div class="total-section">
+                <div class="total-row">
+                    <span class="total-label">ИТОГО:</span>
+                    <span class="total-value">${formatCurrency(grandTotal)}</span>
+                </div>
+            </div>
+            
+            <div class="signature-section">
+                <div>
+                    <div>Исполнитель:</div>
+                    <div class="signature-line"></div>
+                    <div class="signature-label">Подпись / Расшифровка</div>
+                </div>
+                <div>
+                    <div>Заказчик:</div>
+                    <div class="signature-line"></div>
+                    <div class="signature-label">Подпись / Расшифровка</div>
+                </div>
+            </div>
+            
+            <div class="footer">
+                <p>Сформировано в приложении "Смета" © 2025</p>
+                <p>Документ является коммерческим предложением и требует подписания сторонами</p>
+            </div>
+        </body>
+        </html>
+    `;
+}
+
+function formatNumber(num) {
+    return new Intl.NumberFormat('ru-RU', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+    }).format(num);
 }
 
 // Enterprise Features Functions
@@ -1385,29 +1779,77 @@ function initializeEnterpriseFeatures() {
 function exportToExcel() {
     if (!currentEstimate) return;
     
-    let csvContent = "Наименование,Количество,Единица,Цена за ед.,Сумма\n";
-    currentEstimate.items.forEach(item => {
+    // Enhanced CSV with better formatting and metadata
+    const currentDate = new Date().toLocaleDateString('ru-RU');
+    let csvContent = `СМЕТА\n`;
+    csvContent += `Название:,"${currentEstimate.title || 'Без названия'}"\n`;
+    csvContent += `Дата:,${currentEstimate.date || currentDate}\n`;
+    csvContent += `Клиент:,"${currentEstimate.client || 'Не указан'}"\n`;
+    csvContent += `Проект:,"${currentEstimate.project || 'Не указан'}"\n`;
+    csvContent += `\n`;
+    csvContent += `№,Наименование,Единица,Количество,Цена за ед.,Сумма\n`;
+    
+    currentEstimate.items.forEach((item, index) => {
         const total = item.quantity * item.price;
-        csvContent += `"${item.description}",${item.quantity},"${item.unit}",${item.price},${total}\n`;
+        csvContent += `${index + 1},"${item.description}","${item.unit}",${item.quantity},${item.price},${total}\n`;
     });
-    csvContent += `\nИтого:,,,,${currentEstimate.total}`;
+    
+    csvContent += `\n`;
+    csvContent += `ИТОГО:,,,,,${currentEstimate.total}\n`;
+    csvContent += `\n`;
+    csvContent += `Сформировано:,${currentDate}\n`;
+    csvContent += `Приложение:,Смета © 2025\n`;
     
     const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `${currentEstimate.title || 'smeta'}.csv`;
+    const filename = `${(currentEstimate.title || 'smeta').replace(/[^a-zа-я0-9]/gi, '_')}_${new Date().getTime()}.csv`;
+    link.download = filename;
     link.click();
+    
+    // Show success notification
+    showNotification('✅ Excel файл успешно экспортирован', 'success');
 }
 
 function exportToJSON() {
     if (!currentEstimate) return;
     
-    const dataStr = JSON.stringify(currentEstimate, null, 2);
+    // Enhanced JSON with metadata
+    const exportData = {
+        ...currentEstimate,
+        exported_at: new Date().toISOString(),
+        exported_by: 'Смета App v1.0',
+        format_version: '1.0'
+    };
+    
+    const dataStr = JSON.stringify(exportData, null, 2);
     const blob = new Blob([dataStr], { type: 'application/json' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `${currentEstimate.title || 'smeta'}.json`;
+    const filename = `${(currentEstimate.title || 'smeta').replace(/[^a-zа-я0-9]/gi, '_')}_${new Date().getTime()}.json`;
+    link.download = filename;
     link.click();
+    
+    // Show success notification
+    showNotification('✅ JSON файл успешно экспортирован', 'success');
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.classList.add('visible');
+    }, 10);
+    
+    setTimeout(() => {
+        notification.classList.remove('visible');
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 3000);
 }
 
 // Template Functions
@@ -1889,6 +2331,9 @@ function initializePWAFeatures() {
         });
     }
     
+    // Initialize keyboard shortcuts
+    initializeKeyboardShortcuts();
+    
     console.log('✓ PWA features initialized');
 }
 
@@ -1996,4 +2441,438 @@ if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
             document.body.appendChild(updateBanner);
         }
     });
+}
+
+// Keyboard Shortcuts
+function initializeKeyboardShortcuts() {
+    // Add event listeners for shortcuts modal
+    const shortcutsBtn = document.getElementById('keyboardShortcutsBtn');
+    const shortcutsModal = document.getElementById('shortcutsModal');
+    const shortcutsClose = document.getElementById('shortcutsClose');
+    
+    if (shortcutsBtn && shortcutsModal) {
+        shortcutsBtn.addEventListener('click', () => {
+            shortcutsModal.style.display = 'flex';
+        });
+    }
+    
+    if (shortcutsClose && shortcutsModal) {
+        shortcutsClose.addEventListener('click', () => {
+            shortcutsModal.style.display = 'none';
+        });
+        
+        // Close on outside click
+        shortcutsModal.addEventListener('click', (e) => {
+            if (e.target === shortcutsModal) {
+                shortcutsModal.style.display = 'none';
+            }
+        });
+    }
+    
+    document.addEventListener('keydown', (e) => {
+        // Check if user is typing in an input field
+        const isTyping = isUserTyping(e.target);
+        
+        const isMac = detectMacPlatform();
+        const ctrlKey = isMac ? e.metaKey : e.ctrlKey;
+        
+        // ?: Show keyboard shortcuts
+        if (e.key === '?' && !isTyping) {
+            e.preventDefault();
+            if (shortcutsModal) {
+                shortcutsModal.style.display = 'flex';
+            }
+        }
+        
+        // Escape: Close shortcuts modal if open
+        if (e.key === 'Escape' && shortcutsModal && shortcutsModal.style.display === 'flex') {
+            shortcutsModal.style.display = 'none';
+            return;
+        }
+        
+        // Ctrl/Cmd + Z: Undo
+        if (ctrlKey && e.key === 'z' && !isTyping) {
+            e.preventDefault();
+            if (editView.classList.contains('active')) {
+                undo();
+            }
+        }
+        
+        // Ctrl/Cmd + Y: Redo
+        if (ctrlKey && e.key === 'y' && !isTyping) {
+            e.preventDefault();
+            if (editView.classList.contains('active')) {
+                redo();
+            }
+        }
+        
+        // Ctrl/Cmd + N: New estimate
+        if (ctrlKey && e.key === 'n' && !isTyping) {
+            e.preventDefault();
+            document.getElementById('createManualBtn')?.click();
+        }
+        
+        // Ctrl/Cmd + S: Save estimate
+        if (ctrlKey && e.key === 's') {
+            e.preventDefault();
+            const saveBtn = document.getElementById('saveEstimateBtn');
+            if (saveBtn && editView.classList.contains('active')) {
+                saveBtn.click();
+            }
+        }
+        
+        // Ctrl/Cmd + D: Toggle dark mode
+        if (ctrlKey && e.key === 'd' && !isTyping) {
+            e.preventDefault();
+            toggleTheme();
+        }
+        
+        // Ctrl/Cmd + F: Focus search
+        if (ctrlKey && e.key === 'f' && !isTyping) {
+            e.preventDefault();
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput && listView.classList.contains('active')) {
+                searchInput.focus();
+            }
+        }
+        
+        // Escape: Close modals / Return to list
+        if (e.key === 'Escape') {
+            if (editView.classList.contains('active') || 
+                aiView.classList.contains('active') ||
+                document.getElementById('dashboardView').classList.contains('active') ||
+                document.getElementById('templatesView').classList.contains('active')) {
+                showListView();
+            }
+        }
+        
+        // Ctrl/Cmd + P: Print/Export (when in edit view)
+        if (ctrlKey && e.key === 'p') {
+            e.preventDefault();
+            if (editView.classList.contains('active')) {
+                exportEstimate();
+            }
+        }
+        
+        // Ctrl/Cmd + K: Open AI generator
+        if (ctrlKey && e.key === 'k' && !isTyping) {
+            e.preventDefault();
+            document.getElementById('createWithAiBtn')?.click();
+        }
+    });
+    
+    console.log('✓ Keyboard shortcuts initialized');
+}
+
+// Helper function to detect if user is typing
+function isUserTyping(target) {
+    return target.tagName === 'INPUT' || 
+           target.tagName === 'TEXTAREA' || 
+           target.isContentEditable;
+}
+
+// Helper function to detect Mac platform with modern API
+function detectMacPlatform() {
+    // Use modern API with fallback
+    if (navigator.userAgentData?.platform) {
+        return navigator.userAgentData.platform.toUpperCase().indexOf('MAC') >= 0;
+    }
+    // Fallback to deprecated but widely supported API
+    return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+}
+
+// Bulk Operations
+function toggleSelectAll() {
+    const checkboxes = document.querySelectorAll('.bulk-select');
+    const allChecked = selectedEstimatesForBulk.length === estimates.length;
+    
+    if (allChecked) {
+        // Deselect all
+        selectedEstimatesForBulk = [];
+        checkboxes.forEach(cb => cb.checked = false);
+    } else {
+        // Select all
+        selectedEstimatesForBulk = estimates.map((_, index) => index);
+        checkboxes.forEach(cb => cb.checked = true);
+    }
+    
+    updateBulkButtons();
+}
+
+function toggleBulkSelection(index) {
+    const idx = selectedEstimatesForBulk.indexOf(index);
+    
+    if (idx > -1) {
+        selectedEstimatesForBulk.splice(idx, 1);
+    } else {
+        selectedEstimatesForBulk.push(index);
+    }
+    
+    updateBulkButtons();
+}
+
+function updateBulkButtons() {
+    const count = selectedEstimatesForBulk.length;
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    const selectAllBtn = document.getElementById('selectAllBtn');
+    const selectedCountSpan = document.getElementById('selectedCount');
+    
+    if (selectedCountSpan) {
+        selectedCountSpan.textContent = count;
+    }
+    
+    if (bulkDeleteBtn) {
+        bulkDeleteBtn.disabled = count === 0;
+    }
+    
+    if (selectAllBtn) {
+        selectAllBtn.textContent = count === estimates.length ? '☐ Снять выделение' : '☑️ Выбрать все';
+    }
+}
+
+function bulkDelete() {
+    if (selectedEstimatesForBulk.length === 0) return;
+    
+    const count = selectedEstimatesForBulk.length;
+    if (confirm(`Вы уверены, что хотите удалить ${count} ${count === 1 ? 'смету' : 'смет'}?`)) {
+        // Sort indices in descending order to delete from end to start
+        const sortedIndices = [...selectedEstimatesForBulk].sort((a, b) => b - a);
+        
+        sortedIndices.forEach(index => {
+            estimates.splice(index, 1);
+        });
+        
+        saveEstimates();
+        selectedEstimatesForBulk = [];
+        renderEstimatesList();
+        
+        showNotification(`✅ Удалено ${count} ${count === 1 ? 'смета' : 'смет'}`, 'success');
+    }
+}
+
+// Undo/Redo Functionality
+function saveStateToUndo() {
+    if (!currentEstimate) return;
+    
+    // Create a deep copy of current state
+    const state = {
+        estimate: JSON.parse(JSON.stringify(currentEstimate)),
+        timestamp: Date.now()
+    };
+    
+    undoStack.push(state);
+    
+    // Limit undo stack size
+    if (undoStack.length > MAX_UNDO_STACK) {
+        undoStack.shift();
+    }
+    
+    // Clear redo stack when new action is performed
+    redoStack = [];
+    
+    updateUndoRedoButtons();
+}
+
+function undo() {
+    if (undoStack.length === 0) return;
+    
+    // Save current state to redo stack
+    const currentState = {
+        estimate: JSON.parse(JSON.stringify(currentEstimate)),
+        timestamp: Date.now()
+    };
+    redoStack.push(currentState);
+    
+    // Restore previous state
+    const previousState = undoStack.pop();
+    currentEstimate = previousState.estimate;
+    
+    loadEstimateToForm();
+    updateUndoRedoButtons();
+    
+    // Haptic feedback
+    if ('vibrate' in navigator) {
+        navigator.vibrate(10);
+    }
+}
+
+function redo() {
+    if (redoStack.length === 0) return;
+    
+    // Save current state to undo stack
+    const currentState = {
+        estimate: JSON.parse(JSON.stringify(currentEstimate)),
+        timestamp: Date.now()
+    };
+    undoStack.push(currentState);
+    
+    // Restore next state
+    const nextState = redoStack.pop();
+    currentEstimate = nextState.estimate;
+    
+    loadEstimateToForm();
+    updateUndoRedoButtons();
+    
+    // Haptic feedback
+    if ('vibrate' in navigator) {
+        navigator.vibrate(10);
+    }
+}
+
+function updateUndoRedoButtons() {
+    const undoBtn = document.getElementById('undoBtn');
+    const redoBtn = document.getElementById('redoBtn');
+    
+    if (undoBtn) {
+        undoBtn.disabled = undoStack.length === 0;
+        undoBtn.title = undoStack.length > 0 ? 
+            `Отменить (${undoStack.length} действий)` : 
+            'Нет действий для отмены';
+    }
+    
+    if (redoBtn) {
+        redoBtn.disabled = redoStack.length === 0;
+        redoBtn.title = redoStack.length > 0 ? 
+            `Повторить (${redoStack.length} действий)` : 
+            'Нет действий для повтора';
+    }
+}
+
+// Auto-save Functionality
+function initializeAutoSave() {
+    // Auto-save every 30 seconds when in edit view
+    setInterval(() => {
+        if (editView.classList.contains('active') && currentEstimate) {
+            autoSaveEstimate();
+        }
+    }, 30000);
+    
+    // Also save on window beforeunload
+    window.addEventListener('beforeunload', () => {
+        if (editView.classList.contains('active') && currentEstimate) {
+            autoSaveEstimate();
+        }
+    });
+    
+    console.log('✓ Auto-save initialized (30s interval)');
+}
+
+function autoSaveEstimate() {
+    if (!currentEstimate) return;
+    
+    // Get current form state
+    const currentFormState = {
+        title: document.getElementById('estimateTitle').value,
+        date: document.getElementById('estimateDate').value,
+        client: document.getElementById('estimateClient').value,
+        project: document.getElementById('estimateProject').value,
+        items: []
+    };
+    
+    // Get items
+    document.querySelectorAll('.item-row').forEach(row => {
+        const description = row.querySelector('.item-description').value;
+        const quantity = parseFloat(row.querySelector('.item-quantity').value) || 0;
+        const unit = row.querySelector('.item-unit').value;
+        const price = parseFloat(row.querySelector('.item-price').value) || 0;
+        
+        if (description.trim() || quantity > 0 || price > 0) {
+            currentFormState.items.push({ description, quantity, unit, price });
+        }
+    });
+    
+    // Check if state has changed
+    const currentStateStr = JSON.stringify(currentFormState);
+    if (currentStateStr === lastSavedState) {
+        return; // No changes to save
+    }
+    
+    // Save to localStorage as draft
+    localStorage.setItem('estimate_draft', currentStateStr);
+    lastSavedState = currentStateStr;
+    
+    // Show auto-save indicator
+    showAutoSaveIndicator();
+}
+
+function showAutoSaveIndicator() {
+    const indicator = document.getElementById('autoSaveIndicator');
+    if (!indicator) {
+        const newIndicator = document.createElement('div');
+        newIndicator.id = 'autoSaveIndicator';
+        newIndicator.className = 'auto-save-indicator';
+        newIndicator.textContent = '✓ Автоматически сохранено';
+        document.body.appendChild(newIndicator);
+        
+        setTimeout(() => {
+            newIndicator.classList.add('visible');
+        }, 10);
+        
+        setTimeout(() => {
+            newIndicator.classList.remove('visible');
+            setTimeout(() => {
+                newIndicator.remove();
+            }, 300);
+        }, 2000);
+    }
+}
+
+function loadDraft() {
+    const draft = localStorage.getItem('estimate_draft');
+    if (draft) {
+        try {
+            const draftData = JSON.parse(draft);
+            if (confirm('Обнаружен несохраненный черновик. Восстановить?')) {
+                currentEstimate = draftData;
+                loadEstimateToForm();
+                localStorage.removeItem('estimate_draft');
+            }
+        } catch (e) {
+            console.error('Error loading draft:', e);
+        }
+    }
+}
+
+// Dark Mode Functions
+function initializeDarkMode() {
+    const themeToggle = document.getElementById('themeToggle');
+    if (!themeToggle) return;
+    
+    // Load saved theme preference
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    setTheme(savedTheme);
+    
+    // Add click handler
+    themeToggle.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        setTheme(newTheme);
+        
+        // Haptic feedback
+        if ('vibrate' in navigator) {
+            navigator.vibrate(10);
+        }
+    });
+    
+    console.log('✓ Dark mode initialized');
+}
+
+function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+    
+    // Update toggle icon
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        const icon = themeToggle.querySelector('.theme-icon');
+        if (icon) {
+            icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+        }
+    }
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
 }
