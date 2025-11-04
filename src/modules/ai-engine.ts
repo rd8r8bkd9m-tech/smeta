@@ -28,8 +28,8 @@ export interface SmartSuggestion {
 }
 
 export class AIEngine {
-  private model: any = null;
-  private trainingData: any[] = [];
+  private model: Record<string, unknown> | null = null;
+  private trainingData: Estimate[] = [];
 
   constructor() {
     this.initializeModel();
