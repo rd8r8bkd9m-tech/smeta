@@ -9,6 +9,7 @@ node_modules/
 *.tmp
 *.temp
 /tmp/
+screenshots/
 
 # Icon generation script (one-time use)
 icons/generate-icons.js

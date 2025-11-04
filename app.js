@@ -1521,7 +1521,7 @@ function generatePrintHTML(estimate) {
                 }
                 
                 th {
-                    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+                    background: var(--primary-color);
                     color: white;
                     padding: 12px;
                     text-align: left;
@@ -1553,7 +1553,7 @@ function generatePrintHTML(estimate) {
                     align-items: center;
                     gap: 20px;
                     padding: 15px 20px;
-                    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+                    background: var(--background-alt);
                     border-radius: 8px;
                     margin: 10px 0;
                 }
@@ -2427,11 +2427,11 @@ if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
                 top: 20px;
                 left: 50%;
                 transform: translateX(-50%);
-                background: linear-gradient(135deg, #10b981, #059669);
+                background: var(--success-color);
                 color: white;
                 padding: 15px 30px;
-                border-radius: 30px;
-                box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+                border-radius: 8px;
+                box-shadow: var(--shadow-md);
                 z-index: 10000;
                 font-weight: 600;
                 cursor: pointer;
