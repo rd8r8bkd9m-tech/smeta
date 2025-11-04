@@ -3,6 +3,13 @@
 // Test API Key for AI integration
 const TEST_API_KEY = 'AIzaSyAb8RN6KlteMjDAglrWK7cJZBcFVZPaRnZ3dDUpmnhY8eRmXFBg';
 
+// Helper function to escape HTML special characters (prevent XSS)
+function escapeHTML(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
 // Chat state
 let chatHistory = [];
 let isGeneratingEstimate = false;
@@ -231,10 +238,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const textDiv = document.createElement('div');
     textDiv.className = 'message-text';
-    // Convert line breaks to <br> and preserve formatting
+    // Convert line breaks to <br> and preserve formatting with HTML escaping
     textDiv.innerHTML = text
       .split('\n')
-      .map(line => `<p>${line}</p>`)
+      .map(line => `<p>${escapeHTML(line)}</p>`)
       .join('');
     bubbleDiv.appendChild(textDiv);
 
@@ -552,9 +559,10 @@ window.addMessage = function (text, type, avatar) {
 
   const textDiv = document.createElement('div');
   textDiv.className = 'message-text';
+  // Convert line breaks to <br> and preserve formatting with HTML escaping
   textDiv.innerHTML = text
     .split('\n')
-    .map(line => `<p>${line}</p>`)
+    .map(line => `<p>${escapeHTML(line)}</p>`)
     .join('');
   bubbleDiv.appendChild(textDiv);
 
