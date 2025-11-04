@@ -248,6 +248,22 @@ function renderDashboard() {
     document.getElementById('statTotalValue').textContent = formatCurrency(stats.totalValue);
     document.getElementById('statAvgValue').textContent = formatCurrency(stats.avgValue);
     document.getElementById('statThisMonth').textContent = stats.thisMonth;
+    
+    // Add growth indicator if available
+    const monthCard = document.querySelector('#statThisMonth').closest('.stat-card');
+    if (monthCard && stats.recentGrowth !== 0) {
+        const growthClass = stats.recentGrowth > 0 ? 'positive' : 'negative';
+        const growthSymbol = stats.recentGrowth > 0 ? '↑' : '↓';
+        monthCard.classList.add(stats.recentGrowth > 0 ? 'growth-positive' : 'growth-negative');
+        
+        let growthEl = monthCard.querySelector('.growth-indicator');
+        if (!growthEl) {
+            growthEl = document.createElement('div');
+            growthEl.className = `growth-indicator ${growthClass}`;
+            monthCard.appendChild(growthEl);
+        }
+        growthEl.textContent = `${growthSymbol} ${Math.abs(stats.recentGrowth).toFixed(1)}%`;
+    }
 }
 
 // Templates Rendering
@@ -781,15 +797,37 @@ function renderEstimatesList() {
                 </div>
             `;
         }
+        updateComparisonButton();
         return;
     }
     
     estimatesList.innerHTML = filtered.map((estimate, index) => {
         // Find original index for actions
         const originalIndex = estimates.indexOf(estimate);
+        const estimateId = estimate.id || originalIndex;
+        const isFavorite = favorites.includes(estimateId);
+        const isSelected = selectedEstimatesForComparison.includes(estimateId);
+        const isRecent = recentlyViewed.includes(estimateId);
+        
         return `
         <div class="estimate-card" data-index="${originalIndex}">
-            <h3>${estimate.title || 'Без названия'}</h3>
+            <div class="comparison-checkbox">
+                <input type="checkbox" 
+                       class="compare-check" 
+                       data-index="${originalIndex}" 
+                       ${isSelected ? 'checked' : ''}
+                       title="Выбрать для сравнения">
+            </div>
+            <h3>
+                ${estimate.title || 'Без названия'}
+                <span class="favorite-star ${isFavorite ? 'active' : ''}" 
+                      data-action="favorite" 
+                      data-index="${originalIndex}"
+                      title="${isFavorite ? 'Удалить из избранного' : 'Добавить в избранное'}">
+                    ${isFavorite ? '⭐' : '☆'}
+                </span>
+                ${isRecent ? '<span class="recently-viewed-badge">Недавние</span>' : ''}
+            </h3>
             <div class="estimate-card-info">
                 <span>📅 ${estimate.date || 'Дата не указана'}</span>
                 <span>👤 ${estimate.client || 'Клиент не указан'}</span>
@@ -812,6 +850,14 @@ function renderEstimatesList() {
     // Add click handlers to cards
     document.querySelectorAll('.estimate-card').forEach(card => {
         card.addEventListener('click', (e) => {
+            // Check if it's a checkbox
+            if (e.target.classList.contains('compare-check')) {
+                e.stopPropagation();
+                const index = parseInt(e.target.dataset.index);
+                toggleEstimateForComparison(index);
+                return;
+            }
+            
             // Check if it's an action button
             const actionButton = e.target.closest('[data-action]');
             if (actionButton) {
@@ -825,6 +871,8 @@ function renderEstimatesList() {
                     deleteEstimate(index);
                 } else if (action === 'duplicate') {
                     duplicateEstimateFromList(index);
+                } else if (action === 'favorite') {
+                    toggleFavorite(index);
                 }
             } else if (!e.target.closest('.estimate-card-actions')) {
                 const index = parseInt(card.dataset.index);
@@ -1051,6 +1099,7 @@ function createMegaProject() {
 function editEstimate(index) {
     currentEstimate = JSON.parse(JSON.stringify(estimates[index])); // Deep copy
     editingIndex = index;
+    addToRecentlyViewed(index); // Track recently viewed
     loadEstimateToForm();
     showEditView();
 }
