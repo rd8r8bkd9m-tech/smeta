@@ -43,8 +43,118 @@
 
     <!-- Styles -->
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="chat-styles.css" />
   </head>
   <body>
+    <!-- Theme Toggle -->
+    <button
+      id="themeToggle"
+      class="theme-toggle"
+      aria-label="Toggle dark mode"
+      title="Переключить тему"
+    >
+      <span class="theme-icon">🌙</span>
+    </button>
+
+    <!-- Telegram-style Chat Interface -->
+    <div class="telegram-container">
+      <!-- Left Sidebar - Chat List -->
+      <aside class="chats-sidebar">
+        <div class="sidebar-header">
+          <button class="menu-button">☰</button>
+          <input type="text" class="search-box" placeholder="Поиск" />
+        </div>
+        
+        <div class="chats-list">
+          <div class="chat-item active" data-chat="new-client">
+            <div class="chat-avatar">👤</div>
+            <div class="chat-details">
+              <div class="chat-name">Новый клиент</div>
+              <div class="chat-preview">Начните общение...</div>
+            </div>
+            <div class="chat-time">Сейчас</div>
+          </div>
+          
+          <div class="chat-item" data-chat="bot-team">
+            <div class="chat-avatar bot">🤖</div>
+            <div class="chat-details">
+              <div class="chat-name">Строительная фирма</div>
+              <div class="chat-preview">Команда специалистов готова помочь</div>
+            </div>
+            <div class="chat-time">Online</div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Chat Area -->
+      <main class="chat-container">
+        <header class="chat-header">
+          <div class="chat-header-info">
+            <div class="header-avatar">👤</div>
+            <div class="header-details">
+              <div class="header-name">Новый клиент</div>
+              <div class="header-status">онлайн</div>
+            </div>
+          </div>
+          <div class="chat-header-actions">
+            <button class="header-btn">🔍</button>
+            <button class="header-btn">⋮</button>
+          </div>
+        </header>
+
+        <div class="messages-container" id="messages">
+          <div class="date-divider">Сегодня</div>
+          
+          <div class="message incoming">
+            <div class="message-avatar bot">🤖</div>
+            <div class="message-bubble">
+              <div class="message-sender">Виртуальная строительная фирма</div>
+              <div class="message-text">
+                <p>Здравствуйте! Мы - виртуальная строительная фирма с командой специалистов:</p>
+                <br>
+                <p>🏗️ <strong>Главный инженер</strong> - анализ объекта</p>
+                <p>📐 <strong>Архитектор</strong> - расчет объемов</p>
+                <p>🔨 <strong>Прораб</strong> - определение работ</p>
+                <p>📦 <strong>Снабженец</strong> - подбор материалов</p>
+                <p>💰 <strong>Сметчик</strong> - итоговая смета</p>
+                <br>
+                <p>Опишите ваш объект и работы, которые нужно выполнить, и наша команда создаст для вас смету с точностью 99%!</p>
+              </div>
+              <div class="message-timestamp">12:00</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-input-area">
+          <button class="input-btn" title="Прикрепить">📎</button>
+          <textarea 
+            id="messageInput" 
+            class="message-input" 
+            placeholder="Напишите сообщение..."
+            rows="1"
+          ></textarea>
+          <button class="input-btn" title="Эмодзи">😊</button>
+          <button id="sendBtn" class="send-button" title="Отправить">
+            <span class="send-icon">➤</span>
+          </button>
+        </div>
+      </main>
+    </div>
+
+    <!-- Hidden legacy elements for app.js compatibility -->
+    <div style="display: none;">
+      <div id="app">
+        <div id="dashboardView" class="view"></div>
+        <div id="listView" class="view active"></div>
+        <div id="editView" class="view"></div>
+        <div id="aiView" class="view"></div>
+      </div>
+    </div>
+
+    <script src="chat-script.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
     <!-- Dark Mode Toggle -->
     <button
       id="themeToggle"
