@@ -202,6 +202,8 @@
                 <div class="toolbar toolbar-extended">
                     <div class="toolbar-row">
                         <button id="backToListBtn" class="btn">← Назад к списку</button>
+                        <button id="undoBtn" class="btn" disabled title="Отменить (Ctrl+Z)">↶ Отменить</button>
+                        <button id="redoBtn" class="btn" disabled title="Повторить (Ctrl+Y)">↷ Повторить</button>
                         <button id="saveEstimateBtn" class="btn btn-success">💾 Сохранить</button>
                         <button id="saveAsTemplateBtn" class="btn">📑 Сохранить как шаблон</button>
                     </div>
@@ -288,6 +290,14 @@
                 <div class="shortcut-item">
                     <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>S</kbd></span>
                     <span class="shortcut-desc">Сохранить смету</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>Z</kbd></span>
+                    <span class="shortcut-desc">Отменить действие</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>Y</kbd></span>
+                    <span class="shortcut-desc">Повторить действие</span>
                 </div>
                 <div class="shortcut-item">
                     <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>P</kbd></span>

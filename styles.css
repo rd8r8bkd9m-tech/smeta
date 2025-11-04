@@ -1699,6 +1699,41 @@ main,
     font-family: monospace;
 }
 
+/* Auto-save Indicator */
+.auto-save-indicator {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    background: linear-gradient(135deg, var(--success-color), var(--success-dark));
+    color: white;
+    padding: 12px 20px;
+    border-radius: 30px;
+    box-shadow: var(--shadow-lg);
+    font-size: 0.9rem;
+    font-weight: 600;
+    z-index: 999;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+}
+
+.auto-save-indicator.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Undo/Redo buttons styling */
+#undoBtn:disabled,
+#redoBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#undoBtn:not(:disabled):hover,
+#redoBtn:not(:disabled):hover {
+    transform: scale(1.05);
+}
+
 @media (max-width: 768px) {
     .theme-toggle {
         top: 10px;

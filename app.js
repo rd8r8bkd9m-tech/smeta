@@ -4,6 +4,15 @@ let currentEstimate = null;
 let editingIndex = -1;
 let generatedEstimateData = null;
 
+// Undo/Redo State
+let undoStack = [];
+let redoStack = [];
+const MAX_UNDO_STACK = 50;
+
+// Auto-save State
+let autoSaveTimer = null;
+let lastSavedState = null;
+
 // Enterprise Features State
 let templates = [];
 let estimateHistory = {}; // version history for each estimate
@@ -55,6 +64,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initializePWAFeatures();
     initializeEnterpriseFeatures();
     initializeDarkMode();
+    initializeAutoSave();
+    loadDraft(); // Check for unsaved drafts
 });
 
 // Event Listeners
@@ -80,6 +91,10 @@ function initializeEventListeners() {
     document.getElementById('exportJsonBtn').addEventListener('click', exportToJSON);
     document.getElementById('saveAsTemplateBtn').addEventListener('click', saveAsTemplate);
     document.getElementById('duplicateEstimateBtn').addEventListener('click', duplicateEstimate);
+    
+    // Undo/Redo actions
+    document.getElementById('undoBtn').addEventListener('click', undo);
+    document.getElementById('redoBtn').addEventListener('click', redo);
     
     // AI generation
     document.getElementById('generateEstimateBtn').addEventListener('click', generateEstimateWithAI);
@@ -1197,15 +1212,24 @@ function addItemRow(itemData = null) {
     itemsContainer.appendChild(row);
     
     // Add event listeners for calculation
-    row.querySelectorAll('.item-quantity, .item-price').forEach(input => {
+    row.querySelectorAll('.item-quantity, .item-price, .item-description, .item-unit').forEach(input => {
         input.addEventListener('input', () => {
             updateItemTotal(row);
             calculateTotal();
+            // Trigger auto-save on change
+            if (autoSaveTimer) clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(autoSaveEstimate, 2000); // Auto-save after 2s of inactivity
+        });
+        
+        // Save state for undo on focus out
+        input.addEventListener('blur', () => {
+            saveStateToUndo();
         });
     });
     
     // Add event listener for remove button
     row.querySelector('.remove-item-btn').addEventListener('click', () => {
+        saveStateToUndo(); // Save state before removing
         row.remove();
         calculateTotal();
     });
@@ -2049,6 +2073,22 @@ function initializeKeyboardShortcuts() {
             return;
         }
         
+        // Ctrl/Cmd + Z: Undo
+        if (ctrlKey && e.key === 'z' && !isTyping) {
+            e.preventDefault();
+            if (editView.classList.contains('active')) {
+                undo();
+            }
+        }
+        
+        // Ctrl/Cmd + Y: Redo
+        if (ctrlKey && e.key === 'y' && !isTyping) {
+            e.preventDefault();
+            if (editView.classList.contains('active')) {
+                redo();
+            }
+        }
+        
         // Ctrl/Cmd + N: New estimate
         if (ctrlKey && e.key === 'n' && !isTyping) {
             e.preventDefault();
@@ -2122,6 +2162,189 @@ function detectMacPlatform() {
     }
     // Fallback to deprecated but widely supported API
     return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+}
+
+// Undo/Redo Functionality
+function saveStateToUndo() {
+    if (!currentEstimate) return;
+    
+    // Create a deep copy of current state
+    const state = {
+        estimate: JSON.parse(JSON.stringify(currentEstimate)),
+        timestamp: Date.now()
+    };
+    
+    undoStack.push(state);
+    
+    // Limit undo stack size
+    if (undoStack.length > MAX_UNDO_STACK) {
+        undoStack.shift();
+    }
+    
+    // Clear redo stack when new action is performed
+    redoStack = [];
+    
+    updateUndoRedoButtons();
+}
+
+function undo() {
+    if (undoStack.length === 0) return;
+    
+    // Save current state to redo stack
+    const currentState = {
+        estimate: JSON.parse(JSON.stringify(currentEstimate)),
+        timestamp: Date.now()
+    };
+    redoStack.push(currentState);
+    
+    // Restore previous state
+    const previousState = undoStack.pop();
+    currentEstimate = previousState.estimate;
+    
+    loadEstimateToForm();
+    updateUndoRedoButtons();
+    
+    // Haptic feedback
+    if ('vibrate' in navigator) {
+        navigator.vibrate(10);
+    }
+}
+
+function redo() {
+    if (redoStack.length === 0) return;
+    
+    // Save current state to undo stack
+    const currentState = {
+        estimate: JSON.parse(JSON.stringify(currentEstimate)),
+        timestamp: Date.now()
+    };
+    undoStack.push(currentState);
+    
+    // Restore next state
+    const nextState = redoStack.pop();
+    currentEstimate = nextState.estimate;
+    
+    loadEstimateToForm();
+    updateUndoRedoButtons();
+    
+    // Haptic feedback
+    if ('vibrate' in navigator) {
+        navigator.vibrate(10);
+    }
+}
+
+function updateUndoRedoButtons() {
+    const undoBtn = document.getElementById('undoBtn');
+    const redoBtn = document.getElementById('redoBtn');
+    
+    if (undoBtn) {
+        undoBtn.disabled = undoStack.length === 0;
+        undoBtn.title = undoStack.length > 0 ? 
+            `Отменить (${undoStack.length} действий)` : 
+            'Нет действий для отмены';
+    }
+    
+    if (redoBtn) {
+        redoBtn.disabled = redoStack.length === 0;
+        redoBtn.title = redoStack.length > 0 ? 
+            `Повторить (${redoStack.length} действий)` : 
+            'Нет действий для повтора';
+    }
+}
+
+// Auto-save Functionality
+function initializeAutoSave() {
+    // Auto-save every 30 seconds when in edit view
+    setInterval(() => {
+        if (editView.classList.contains('active') && currentEstimate) {
+            autoSaveEstimate();
+        }
+    }, 30000);
+    
+    // Also save on window beforeunload
+    window.addEventListener('beforeunload', () => {
+        if (editView.classList.contains('active') && currentEstimate) {
+            autoSaveEstimate();
+        }
+    });
+    
+    console.log('✓ Auto-save initialized (30s interval)');
+}
+
+function autoSaveEstimate() {
+    if (!currentEstimate) return;
+    
+    // Get current form state
+    const currentFormState = {
+        title: document.getElementById('estimateTitle').value,
+        date: document.getElementById('estimateDate').value,
+        client: document.getElementById('estimateClient').value,
+        project: document.getElementById('estimateProject').value,
+        items: []
+    };
+    
+    // Get items
+    document.querySelectorAll('.item-row').forEach(row => {
+        const description = row.querySelector('.item-description').value;
+        const quantity = parseFloat(row.querySelector('.item-quantity').value) || 0;
+        const unit = row.querySelector('.item-unit').value;
+        const price = parseFloat(row.querySelector('.item-price').value) || 0;
+        
+        if (description.trim() || quantity > 0 || price > 0) {
+            currentFormState.items.push({ description, quantity, unit, price });
+        }
+    });
+    
+    // Check if state has changed
+    const currentStateStr = JSON.stringify(currentFormState);
+    if (currentStateStr === lastSavedState) {
+        return; // No changes to save
+    }
+    
+    // Save to localStorage as draft
+    localStorage.setItem('estimate_draft', currentStateStr);
+    lastSavedState = currentStateStr;
+    
+    // Show auto-save indicator
+    showAutoSaveIndicator();
+}
+
+function showAutoSaveIndicator() {
+    const indicator = document.getElementById('autoSaveIndicator');
+    if (!indicator) {
+        const newIndicator = document.createElement('div');
+        newIndicator.id = 'autoSaveIndicator';
+        newIndicator.className = 'auto-save-indicator';
+        newIndicator.textContent = '✓ Автоматически сохранено';
+        document.body.appendChild(newIndicator);
+        
+        setTimeout(() => {
+            newIndicator.classList.add('visible');
+        }, 10);
+        
+        setTimeout(() => {
+            newIndicator.classList.remove('visible');
+            setTimeout(() => {
+                newIndicator.remove();
+            }, 300);
+        }, 2000);
+    }
+}
+
+function loadDraft() {
+    const draft = localStorage.getItem('estimate_draft');
+    if (draft) {
+        try {
+            const draftData = JSON.parse(draft);
+            if (confirm('Обнаружен несохраненный черновик. Восстановить?')) {
+                currentEstimate = draftData;
+                loadEstimateToForm();
+                localStorage.removeItem('estimate_draft');
+            }
+        } catch (e) {
+            console.error('Error loading draft:', e);
+        }
+    }
 }
 
 // Dark Mode Functions
