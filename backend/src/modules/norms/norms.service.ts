@@ -51,7 +51,7 @@ export class NormsService {
     return query.getMany();
   }
 
-  async findByCode(code: string, type: NormType): Promise<Norm> {
+  async findByCode(code: string, type: NormType): Promise<Norm | null> {
     return this.normRepository.findOne({
       where: { code, type, isActive: true },
     });
@@ -86,6 +86,10 @@ export class NormsService {
 
   async bulkImport(norms: any[]): Promise<void> {
     const entities = norms.map((norm) => this.normRepository.create(norm));
-    await this.normRepository.save(entities, { chunk: 1000 });
+    // Save in chunks to avoid memory issues
+    for (let i = 0; i < entities.length; i += 1000) {
+      const chunk = entities.slice(i, i + 1000);
+      await this.normRepository.save(chunk);
+    }
   }
 }

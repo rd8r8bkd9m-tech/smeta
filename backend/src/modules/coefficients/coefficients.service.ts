@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-interface CoefficientRule {
+export interface CoefficientRule {
   name: string;
   code: string;
   value: number;

@@ -31,7 +31,8 @@ pub fn create_estimate_item(quantity: f64, unit_price: f64) -> JsValue {
         unit_price,
         coefficients: vec![],
     };
-    serde_wasm_bindgen::to_value(&item).unwrap()
+    // Return a simple object representation
+    JsValue::from_str(&serde_json::to_string(&item).unwrap())
 }
 
 #[wasm_bindgen]
@@ -81,7 +82,7 @@ pub fn calculate_labor_hours(quantity: f64, norm_hours: f64, difficulty_coef: f6
 /// Apply price index for recalculation
 #[wasm_bindgen]
 pub fn apply_price_index(base_price: f64, base_year: i32, target_year: i32) -> f64 {
-    let yearly_inflation = 1.07;
+    let yearly_inflation: f64 = 1.07;
     let years = (target_year - base_year) as f64;
     (base_price * yearly_inflation.powf(years) * 100.0).round() / 100.0
 }
