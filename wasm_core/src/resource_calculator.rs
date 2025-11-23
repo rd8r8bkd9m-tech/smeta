@@ -40,7 +40,12 @@ pub fn aggregate_materials(
     aggregated
         .into_iter()
         .map(|(key, (qty, unit))| {
-            let name = key.split('_').next().unwrap_or("").to_string();
+            // Extract name by removing the unit suffix
+            let name = if let Some((name_part, _)) = key.rsplit_once('_') {
+                name_part.to_string()
+            } else {
+                key
+            };
             (name, qty, unit)
         })
         .collect()

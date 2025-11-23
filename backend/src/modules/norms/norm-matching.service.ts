@@ -66,13 +66,15 @@ export class NormMatchingService {
     keywords: string[],
     description: WorkDescription,
   ): Norm[] {
-    return norms
-      .map((norm) => ({
-        norm,
-        score: this.calculateRelevanceScore(norm, keywords, description),
-      }))
-      .sort((a, b) => b.score - a.score)
-      .map((item) => item.norm);
+    // Calculate scores with indices for efficient sorting
+    const scored = norms.map((norm, index) => ({
+      index,
+      score: this.calculateRelevanceScore(norm, keywords, description),
+    }));
+    
+    // Sort by score and map back to norms
+    scored.sort((a, b) => b.score - a.score);
+    return scored.map((item) => norms[item.index]);
   }
 
   /**

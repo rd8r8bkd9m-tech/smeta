@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import Docxtemplater from 'docxtemplater';
 import PizZip from 'pizzip';
 import { Estimate } from '../estimates/estimate.entity';
@@ -7,9 +8,18 @@ import * as path from 'path';
 
 @Injectable()
 export class WordExportService {
+  private readonly templatePath: string;
+
+  constructor(private configService: ConfigService) {
+    // Get template path from environment or use default
+    const templatesDir = this.configService.get('TEMPLATES_DIR') || 
+                        path.join(process.cwd(), 'templates');
+    this.templatePath = path.join(templatesDir, 'estimate-template.docx');
+  }
+
   async generate(estimate: Estimate): Promise<Buffer> {
-    // Load template (you should create a template file)
-    const templatePath = path.join(__dirname, '../../../templates/estimate-template.docx');
+    // Load template
+    const templatePath = this.templatePath;
     
     // If template doesn't exist, generate simple document
     if (!fs.existsSync(templatePath)) {
