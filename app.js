@@ -18,8 +18,8 @@ let templates = [];
 let estimateHistory = {}; // version history for each estimate
 let tags = [];
 let currencies = ['RUB', 'USD', 'EUR'];
-let currentCurrency = 'RUB';
-let exchangeRates = { RUB: 1, USD: 93, EUR: 100 }; // RUB as base
+let _currentCurrency = 'RUB'; // Planned feature: currency conversion
+let _exchangeRates = { RUB: 1, USD: 93, EUR: 100 }; // RUB as base
 let searchQuery = '';
 let filterTags = [];
 let sortBy = 'date'; // date, name, total
@@ -30,11 +30,12 @@ let selectedEstimatesForComparison = []; // Multiple estimate comparison
 let selectedEstimatesForBulk = []; // Bulk operations selection
 let favorites = []; // Favorite estimates
 let recentlyViewed = []; // Recently viewed estimates
-let notifications = []; // System notifications
+let _notifications = []; // System notifications - planned feature
 
 // Enterprise Configuration
 const MAX_ESTIMATE_VERSIONS = 50; // Maximum number of versions to keep per estimate
-const DEFAULT_CATEGORIES = [
+const _DEFAULT_CATEGORIES = [
+  // Planned feature: default categories
   'Жилая недвижимость',
   'Коммерческая недвижимость',
   'Ландшафт',
@@ -45,8 +46,8 @@ const MAX_COMPARISON_ITEMS = 5; // Maximum estimates for comparison
 
 // PWA State
 let isOnline = navigator.onLine;
-let touchStartY = 0;
-let isPulling = false;
+let _touchStartY = 0; // Planned feature: pull-to-refresh
+let _isPulling = false;
 
 // Test API Key for development
 const TEST_API_KEY = 'AIzaSyAb8RN6KlteMjDAglrWK7cJZBcFVZPaRnZ3dDUpmnhY8eRmXFBg';
@@ -205,7 +206,8 @@ function loadTags() {
   }
 }
 
-function saveTags() {
+// Planned feature: save tags to localStorage
+function _saveTags() {
   localStorage.setItem('estimate_tags', JSON.stringify(tags));
 }
 
@@ -875,7 +877,7 @@ function renderEstimatesList() {
   }
 
   estimatesList.innerHTML = filtered
-    .map((estimate, index) => {
+    .map((estimate, _index) => {
       // Find original index for actions
       const originalIndex = estimates.indexOf(estimate);
       const estimateId = estimate.id || originalIndex;
@@ -988,7 +990,8 @@ function createNewEstimate() {
 }
 
 // Create a billion-dollar mega project demonstration
-function createMegaProject() {
+// Example/demo function - not currently used
+function _createMegaProject() {
   currentEstimate = {
     title: 'Мегапроект: Международный бизнес-комплекс "Москва-Сити 2.0"',
     date: new Date().toISOString().split('T')[0],
@@ -1345,7 +1348,7 @@ function handleDragStart(e) {
   }
 }
 
-function handleDragEnd(e) {
+function handleDragEnd(_e) {
   this.classList.remove('dragging');
 
   // Remove all drag-over classes
@@ -1372,13 +1375,13 @@ function handleDragOver(e) {
   return false;
 }
 
-function handleDragEnter(e) {
+function handleDragEnter(_e) {
   if (this !== draggedElement) {
     this.classList.add('drag-over');
   }
 }
 
-function handleDragLeave(e) {
+function handleDragLeave(_e) {
   this.classList.remove('drag-over');
 }
 
@@ -2022,8 +2025,8 @@ function filterEstimates() {
   return filtered;
 }
 
-// Version History Functions
-function saveVersion(estimateId) {
+// Version History Functions - planned feature
+function _saveVersion(estimateId) {
   if (!estimateId) return;
 
   if (!estimateHistory[estimateId]) {
@@ -2312,8 +2315,8 @@ function loadRecentlyViewed() {
   }
 }
 
-// Advanced Export with customization
-function exportToPDF() {
+// Advanced Export with customization - planned feature
+function _exportToPDF() {
   if (!currentEstimate) return;
 
   // Use browser's print with enhanced styling

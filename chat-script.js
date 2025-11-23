@@ -15,7 +15,7 @@ let chatHistory = [];
 let isGeneratingEstimate = false;
 let currentEstimateData = {};
 let isSoundEnabled = true;
-let typingTimeout = null;
+let _typingTimeout = null; // Planned feature: typing indicator
 
 // Sound effects
 const sounds = {
@@ -334,7 +334,7 @@ document.addEventListener('DOMContentLoaded', function () {
       try {
         chatHistory = JSON.parse(saved);
         // Restore last few messages to display
-        const lastMessages = chatHistory.slice(-5);
+        const _lastMessages = chatHistory.slice(-5);
         // Don't restore to avoid cluttering - let users start fresh
       } catch (e) {
         console.error('Error loading chat history:', e);
