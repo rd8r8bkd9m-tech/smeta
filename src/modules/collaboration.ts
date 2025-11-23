@@ -18,7 +18,7 @@ export interface CollaborationChange {
   id: string;
   type: 'add' | 'edit' | 'delete' | 'reorder';
   targetId: string;
-  data: any;
+  data: Record<string, unknown>;
   userId: string;
   timestamp: Date;
   applied: boolean;
@@ -31,6 +31,11 @@ export interface ShareLink {
   expiresAt?: Date;
   createdBy: string;
   accessCount: number;
+}
+
+interface WebSocketMessage {
+  type: string;
+  data?: unknown;
 }
 
 export class CollaborationManager {
@@ -123,19 +128,19 @@ export class CollaborationManager {
   /**
    * Handle incoming WebSocket messages
    */
-  private handleIncomingMessage(message: any): void {
+  private handleIncomingMessage(message: WebSocketMessage): void {
     switch (message.type) {
       case 'collaborator_joined':
-        this.onCollaboratorJoined(message.data);
+        this.onCollaboratorJoined(message.data as CollaboratorInfo);
         break;
       case 'collaborator_left':
-        this.onCollaboratorLeft(message.data);
+        this.onCollaboratorLeft(message.data as { userId: string });
         break;
       case 'cursor_move':
-        this.onCursorMove(message.data);
+        this.onCursorMove(message.data as { userId: string; x: number; y: number });
         break;
       case 'change':
-        this.onRemoteChange(message.data);
+        this.onRemoteChange(message.data as CollaborationChange);
         break;
       case 'heartbeat':
         // Keep connection alive
@@ -461,8 +466,11 @@ export class CollaborationManager {
     const message = messages[change.type] || `${userName} внес(ла) изменения`;
 
     // Use existing notification system
-    if (typeof (window as any).showNotification === 'function') {
-      (window as any).showNotification(message, 'info');
+    const windowWithNotification = window as Window & {
+      showNotification?: (message: string, type: string) => void;
+    };
+    if (typeof windowWithNotification.showNotification === 'function') {
+      windowWithNotification.showNotification(message, 'info');
     }
   }
 

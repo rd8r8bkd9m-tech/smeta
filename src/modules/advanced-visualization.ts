@@ -17,7 +17,7 @@ export interface DataPoint {
   label: string;
   value: number;
   color?: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 export class AdvancedVisualization {
@@ -481,7 +481,7 @@ export class AdvancedVisualization {
 
   private drawLabels(
     labels: { x: string[]; y: string[] },
-    margin: any,
+    margin: { top: number; right: number; bottom: number; left: number },
     cellWidth: number,
     cellHeight: number
   ): void {
@@ -505,7 +505,11 @@ export class AdvancedVisualization {
     });
   }
 
-  private drawAxes(width: number, height: number, margin: any): void {
+  private drawAxes(
+    width: number,
+    height: number,
+    margin: { top: number; right: number; bottom: number; left: number }
+  ): void {
     this.ctx.strokeStyle = '#000';
     this.ctx.lineWidth = 2;
     this.ctx.beginPath();

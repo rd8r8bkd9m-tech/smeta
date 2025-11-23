@@ -110,7 +110,7 @@ describe('AI Engine', () => {
 });
 
 describe('Collaboration Manager', () => {
-  let collab: any;
+  let collab: ReturnType<typeof createCollaborationManager>;
 
   beforeEach(() => {
     collab = createCollaborationManager('test-user-123');
@@ -169,7 +169,7 @@ describe('Offline Sync Manager', () => {
     const retrieved = await offlineSyncManager.getEstimate('test-1');
 
     expect(retrieved).toBeDefined();
-    expect(retrieved.title).toBe('Test Estimate');
+    expect(retrieved?.title).toBe('Test Estimate');
   });
 
   it('should get all estimates', async () => {
@@ -197,7 +197,7 @@ describe('Offline Sync Manager', () => {
 
 describe('Advanced Visualization', () => {
   let canvas: HTMLCanvasElement;
-  let viz: any;
+  let viz: ReturnType<typeof createVisualization>;
 
   beforeEach(() => {
     canvas = document.createElement('canvas');
