@@ -5,6 +5,13 @@
 
 import { logger } from '../utils/logger';
 
+// Extend Window interface for custom notification function
+declare global {
+  interface Window {
+    showNotification?: (message: string, type: string) => void;
+  }
+}
+
 export interface CollaboratorInfo {
   id: string;
   name: string;
@@ -18,7 +25,7 @@ export interface CollaborationChange {
   id: string;
   type: 'add' | 'edit' | 'delete' | 'reorder';
   targetId: string;
-  data: any;
+  data: Record<string, unknown>;
   userId: string;
   timestamp: Date;
   applied: boolean;
@@ -123,7 +130,7 @@ export class CollaborationManager {
   /**
    * Handle incoming WebSocket messages
    */
-  private handleIncomingMessage(message: any): void {
+  private handleIncomingMessage(message: { type: string; data: Record<string, unknown> }): void {
     switch (message.type) {
       case 'collaborator_joined':
         this.onCollaboratorJoined(message.data);
@@ -461,8 +468,8 @@ export class CollaborationManager {
     const message = messages[change.type] || `${userName} внес(ла) изменения`;
 
     // Use existing notification system
-    if (typeof (window as any).showNotification === 'function') {
-      (window as any).showNotification(message, 'info');
+    if (typeof window.showNotification === 'function') {
+      window.showNotification(message, 'info');
     }
   }
 

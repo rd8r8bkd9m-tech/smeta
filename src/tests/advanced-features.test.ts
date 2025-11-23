@@ -5,9 +5,9 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { aiEngine } from '../modules/ai-engine';
-import { createCollaborationManager } from '../modules/collaboration';
+import { createCollaborationManager, type CollaborationManager } from '../modules/collaboration';
 import { offlineSyncManager } from '../modules/offline-sync';
-import { createVisualization } from '../modules/advanced-visualization';
+import { createVisualization, type AdvancedVisualization } from '../modules/advanced-visualization';
 import { enterpriseManager } from '../modules/enterprise';
 
 describe('AI Engine', () => {
@@ -110,7 +110,7 @@ describe('AI Engine', () => {
 });
 
 describe('Collaboration Manager', () => {
-  let collab: any;
+  let collab: CollaborationManager;
 
   beforeEach(() => {
     collab = createCollaborationManager('test-user-123');
@@ -197,7 +197,7 @@ describe('Offline Sync Manager', () => {
 
 describe('Advanced Visualization', () => {
   let canvas: HTMLCanvasElement;
-  let viz: any;
+  let viz: AdvancedVisualization;
 
   beforeEach(() => {
     canvas = document.createElement('canvas');

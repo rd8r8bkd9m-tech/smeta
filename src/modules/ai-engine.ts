@@ -4,6 +4,8 @@
  * and smart suggestions using machine learning algorithms
  */
 
+import type { Estimate, EstimateItem } from '../types/index.js';
+
 export interface PredictionResult {
   predictedCost: number;
   confidence: number;
@@ -61,7 +63,11 @@ export class AIEngine {
   /**
    * Predict project cost based on historical data and current inputs
    */
-  public predictCost(items: any[], category: string, historicalEstimates: any[]): PredictionResult {
+  public predictCost(
+    items: EstimateItem[],
+    category: string,
+    historicalEstimates: Estimate[]
+  ): PredictionResult {
     if (!this.model) {
       throw new Error('Model not initialized');
     }
@@ -111,7 +117,7 @@ export class AIEngine {
   /**
    * Detect anomalies in estimate data
    */
-  public detectAnomalies(estimate: any, historicalData: any[]): Anomaly[] {
+  public detectAnomalies(estimate: Estimate, historicalData: Estimate[]): Anomaly[] {
     const anomalies: Anomaly[] = [];
 
     // Check for unusual cost patterns
@@ -132,7 +138,9 @@ export class AIEngine {
     }
 
     // Check for duplicate items
-    const itemNames = estimate.items.map((item: any) => item.name.toLowerCase());
+    const itemNames = estimate.items.map(item =>
+      item.name ? item.name.toLowerCase() : item.description.toLowerCase()
+    );
     const duplicates: number[] = [];
     itemNames.forEach((name: string, index: number) => {
       if (itemNames.indexOf(name) !== index && !duplicates.includes(index)) {
@@ -169,12 +177,17 @@ export class AIEngine {
   /**
    * Generate smart suggestions based on estimate content
    */
-  public generateSuggestions(estimate: any, historicalEstimates: any[]): SmartSuggestion[] {
+  public generateSuggestions(
+    estimate: Estimate,
+    historicalEstimates: Estimate[]
+  ): SmartSuggestion[] {
     const suggestions: SmartSuggestion[] = [];
 
     // Suggest missing common items
     const commonItems = this.findCommonItems(historicalEstimates);
-    const currentItemNames = estimate.items.map((item: any) => item.name.toLowerCase());
+    const currentItemNames = estimate.items.map(item =>
+      item.name ? item.name.toLowerCase() : item.description.toLowerCase()
+    );
 
     commonItems.forEach(commonItem => {
       if (
@@ -194,8 +207,8 @@ export class AIEngine {
 
     // Cost optimization suggestions
     const expensiveItems = estimate.items
-      .filter((item: any) => item.totalPrice > estimate.total * 0.15)
-      .sort((a: any, b: any) => b.totalPrice - a.totalPrice);
+      .filter(item => (item.totalPrice || 0) > estimate.total * 0.15)
+      .sort((a, b) => (b.totalPrice || 0) - (a.totalPrice || 0));
 
     if (expensiveItems.length > 0) {
       suggestions.push({
@@ -227,7 +240,7 @@ export class AIEngine {
   /**
    * Analyze spending patterns over time
    */
-  public analyzeSpendingPatterns(estimates: any[]): {
+  public analyzeSpendingPatterns(estimates: Estimate[]): {
     trends: Array<{ month: string; amount: number; change: number }>;
     seasonality: { high: string[]; low: string[] };
     forecast: Array<{ month: string; predicted: number }>;
@@ -243,7 +256,7 @@ export class AIEngine {
   /**
    * Natural language query processing
    */
-  public processNaturalQuery(query: string, estimates: any[]): any[] {
+  public processNaturalQuery(query: string, estimates: Estimate[]): Estimate[] {
     const lowerQuery = query.toLowerCase();
 
     // Parse intent
@@ -284,8 +297,8 @@ export class AIEngine {
   private generateRecommendations(
     predicted: number,
     actual: number,
-    items: any[],
-    historical: any[]
+    items: EstimateItem[],
+    historical: Estimate[]
   ): string[] {
     const recommendations: string[] = [];
 
@@ -308,13 +321,15 @@ export class AIEngine {
     return recommendations;
   }
 
-  private findCommonItems(estimates: any[]): Array<{ name: string; frequency: number }> {
+  private findCommonItems(estimates: Estimate[]): Array<{ name: string; frequency: number }> {
     const itemCounts = new Map<string, number>();
     const totalEstimates = estimates.length;
 
     estimates.forEach(estimate => {
       const uniqueNames = new Set<string>(
-        estimate.items.map((item: any) => item.name.toLowerCase())
+        estimate.items.map(item =>
+          item.name ? item.name.toLowerCase() : item.description.toLowerCase()
+        )
       );
       uniqueNames.forEach((name: string) => {
         itemCounts.set(name, (itemCounts.get(name) || 0) + 1);
@@ -369,14 +384,18 @@ export class AIEngine {
     return matrix[str2.length][str1.length];
   }
 
-  private suggestCategory(items: any[], historical: any[]): string | null {
-    const keywords = items.map((item: any) => item.name.toLowerCase()).join(' ');
+  private suggestCategory(items: EstimateItem[], historical: Estimate[]): string | null {
+    const keywords = items
+      .map(item => (item.name ? item.name.toLowerCase() : item.description.toLowerCase()))
+      .join(' ');
 
     const categoryScores = new Map<string, number>();
     historical.forEach(estimate => {
       if (!estimate.category) return;
 
-      const estimateKeywords = estimate.items.map((item: any) => item.name.toLowerCase()).join(' ');
+      const estimateKeywords = estimate.items
+        .map(item => (item.name ? item.name.toLowerCase() : item.description.toLowerCase()))
+        .join(' ');
 
       const similarity = this.textSimilarity(keywords, estimateKeywords);
       categoryScores.set(
@@ -402,7 +421,7 @@ export class AIEngine {
     return union.size > 0 ? intersection.size / union.size : 0;
   }
 
-  private groupByMonth(estimates: any[]): Map<string, number> {
+  private groupByMonth(estimates: Estimate[]): Map<string, number> {
     const monthlyData = new Map<string, number>();
 
     estimates.forEach(estimate => {

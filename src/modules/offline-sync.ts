@@ -5,11 +5,12 @@
 
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
 import { logger } from '../utils/logger';
+import type { Estimate } from '../types/index.js';
 
 interface SmetaDB extends DBSchema {
   estimates: {
     key: string;
-    value: any;
+    value: Estimate;
     indexes: { 'by-date': string; 'by-client': string };
   };
   sync_queue: {
@@ -17,7 +18,7 @@ interface SmetaDB extends DBSchema {
     value: {
       id: string;
       action: 'create' | 'update' | 'delete';
-      data: any;
+      data: Estimate;
       timestamp: number;
       retries: number;
     };
@@ -86,7 +87,7 @@ export class OfflineSyncManager {
   /**
    * Save estimate to IndexedDB
    */
-  public async saveEstimate(estimate: any): Promise<void> {
+  public async saveEstimate(estimate: Estimate): Promise<void> {
     if (!this.db) {
       await this.initializeDB();
     }
@@ -108,7 +109,7 @@ export class OfflineSyncManager {
   /**
    * Get all estimates from IndexedDB
    */
-  public async getAllEstimates(): Promise<any[]> {
+  public async getAllEstimates(): Promise<Estimate[]> {
     if (!this.db) {
       await this.initializeDB();
     }
@@ -123,7 +124,7 @@ export class OfflineSyncManager {
   /**
    * Get estimate by ID
    */
-  public async getEstimate(id: string): Promise<any | undefined> {
+  public async getEstimate(id: string): Promise<Estimate | undefined> {
     if (!this.db) {
       await this.initializeDB();
     }
@@ -154,7 +155,7 @@ export class OfflineSyncManager {
   /**
    * Queue an action for background sync
    */
-  private async queueSync(action: 'create' | 'update' | 'delete', data: any): Promise<void> {
+  private async queueSync(action: 'create' | 'update' | 'delete', data: Estimate): Promise<void> {
     if (!this.db) return;
 
     const syncItem = {
@@ -213,7 +214,13 @@ export class OfflineSyncManager {
   /**
    * Sync a single item with the server
    */
-  private async syncItem(item: any): Promise<void> {
+  private async syncItem(item: {
+    id: string;
+    action: 'create' | 'update' | 'delete';
+    data: Estimate;
+    timestamp: number;
+    retries: number;
+  }): Promise<void> {
     // Mock implementation - in production, this would call actual API
     return new Promise(resolve => {
       setTimeout(() => {
@@ -301,7 +308,15 @@ export class OfflineSyncManager {
   /**
    * Get attachments for an estimate
    */
-  public async getAttachments(estimateId: string): Promise<any[]> {
+  public async getAttachments(estimateId: string): Promise<
+    Array<{
+      id: string;
+      estimateId: string;
+      filename: string;
+      blob: Blob;
+      uploadedAt: Date;
+    }>
+  > {
     if (!this.db) {
       await this.initializeDB();
     }
