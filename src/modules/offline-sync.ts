@@ -97,7 +97,7 @@ export class OfflineSyncManager {
         ...estimate,
         _lastModified: Date.now(),
         _synced: navigator.onLine,
-      });
+      } as Estimate & { _lastModified: number; _synced: boolean });
 
       // Queue for sync if offline
       if (!navigator.onLine) {
@@ -148,7 +148,13 @@ export class OfflineSyncManager {
       await this.db.delete('estimates', id);
 
       // Queue for sync
-      await this.queueSync('delete', { id });
+      await this.queueSync('delete', {
+        id,
+        title: '',
+        date: '',
+        items: [],
+        total: 0,
+      } as Estimate);
     }
   }
 

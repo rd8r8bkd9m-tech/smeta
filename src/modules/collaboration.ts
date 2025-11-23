@@ -130,19 +130,19 @@ export class CollaborationManager {
   /**
    * Handle incoming WebSocket messages
    */
-  private handleIncomingMessage(message: { type: string; data: Record<string, unknown> }): void {
+  private handleIncomingMessage(message: { type: string; data: unknown }): void {
     switch (message.type) {
       case 'collaborator_joined':
-        this.onCollaboratorJoined(message.data);
+        this.onCollaboratorJoined(message.data as CollaboratorInfo);
         break;
       case 'collaborator_left':
-        this.onCollaboratorLeft(message.data);
+        this.onCollaboratorLeft(message.data as { userId: string });
         break;
       case 'cursor_move':
-        this.onCursorMove(message.data);
+        this.onCursorMove(message.data as { userId: string; x: number; y: number });
         break;
       case 'change':
-        this.onRemoteChange(message.data);
+        this.onRemoteChange(message.data as CollaborationChange);
         break;
       case 'heartbeat':
         // Keep connection alive
