@@ -20,10 +20,7 @@ export class NormMatchingService {
     const keywords = this.extractKeywords(description.text);
 
     // Search for matching norms
-    const candidates = await this.normsService.findSimilar(
-      keywords.join(' '),
-      20,
-    );
+    const candidates = await this.normsService.findSimilar(keywords.join(' '), 20);
 
     // Rank candidates by relevance
     const ranked = this.rankNorms(candidates, keywords, description);
@@ -35,46 +32,28 @@ export class NormMatchingService {
    * Extract meaningful keywords from work description
    */
   private extractKeywords(text: string): string[] {
-    const stopWords = [
-      'и',
-      'в',
-      'на',
-      'с',
-      'по',
-      'для',
-      'из',
-      'к',
-      'за',
-      'о',
-      'от',
-      'до',
-      'при',
-    ];
+    const stopWords = ['и', 'в', 'на', 'с', 'по', 'для', 'из', 'к', 'за', 'о', 'от', 'до', 'при'];
 
     return text
       .toLowerCase()
       .replace(/[^\wа-яё\s]/gi, ' ')
       .split(/\s+/)
-      .filter((word) => word.length > 2 && !stopWords.includes(word));
+      .filter(word => word.length > 2 && !stopWords.includes(word));
   }
 
   /**
    * Rank norms by relevance score
    */
-  private rankNorms(
-    norms: Norm[],
-    keywords: string[],
-    description: WorkDescription,
-  ): Norm[] {
+  private rankNorms(norms: Norm[], keywords: string[], description: WorkDescription): Norm[] {
     // Calculate scores with indices for efficient sorting
     const scored = norms.map((norm, index) => ({
       index,
       score: this.calculateRelevanceScore(norm, keywords, description),
     }));
-    
+
     // Sort by score and map back to norms
     scored.sort((a, b) => b.score - a.score);
-    return scored.map((item) => norms[item.index]);
+    return scored.map(item => norms[item.index]);
   }
 
   /**
@@ -83,14 +62,14 @@ export class NormMatchingService {
   private calculateRelevanceScore(
     norm: Norm,
     keywords: string[],
-    description: WorkDescription,
+    description: WorkDescription
   ): number {
     let score = 0;
 
     const normText = `${norm.name} ${norm.description}`.toLowerCase();
 
     // Keyword matching
-    keywords.forEach((keyword) => {
+    keywords.forEach(keyword => {
       if (normText.includes(keyword)) {
         score += 10;
       }
@@ -102,7 +81,7 @@ export class NormMatchingService {
     }
 
     // Exact code match
-    if (keywords.some((k) => k === norm.code.toLowerCase())) {
+    if (keywords.some(k => k === norm.code.toLowerCase())) {
       score += 100;
     }
 
@@ -118,7 +97,7 @@ export class NormMatchingService {
 
     // Match each work item to norms
     const matchedItems = await Promise.all(
-      workItems.map(async (item) => {
+      workItems.map(async item => {
         const matchedNorms = await this.matchNormToWork(item);
         return {
           description: item.text,
@@ -127,7 +106,7 @@ export class NormMatchingService {
           suggestedNorms: matchedNorms,
           bestMatch: matchedNorms[0],
         };
-      }),
+      })
     );
 
     return matchedItems;
@@ -140,8 +119,8 @@ export class NormMatchingService {
     // Simple parsing - in production, use NLP
     const lines = text.split(/[.\n]/);
     return lines
-      .filter((line) => line.trim().length > 0)
-      .map((line) => ({
+      .filter(line => line.trim().length > 0)
+      .map(line => ({
         text: line.trim(),
       }));
   }

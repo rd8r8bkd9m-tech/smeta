@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  Param,
-  Query,
-  Res,
-  Request,
-} from '@nestjs/common';
+import { Controller, Get, Param, Query, Res, Request } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Response } from 'express';
 import { ExportService, ExportFormat } from './export.service';
@@ -16,7 +9,7 @@ import { EstimatesService } from '../estimates/estimates.service';
 export class ExportController {
   constructor(
     private readonly exportService: ExportService,
-    private readonly estimatesService: EstimatesService,
+    private readonly estimatesService: EstimatesService
   ) {}
 
   @Get(':id')
@@ -25,7 +18,7 @@ export class ExportController {
     @Param('id') id: string,
     @Query('format') format: ExportFormat = 'pdf',
     @Res() res: Response,
-    @Request() req: any,
+    @Request() req: any
   ) {
     const estimate = await this.estimatesService.findOne(id, req.user?.id);
 
@@ -40,7 +33,7 @@ export class ExportController {
     res.setHeader('Content-Type', contentType);
     res.setHeader(
       'Content-Disposition',
-      `attachment; filename=estimate-${estimate.id}.${extension}`,
+      `attachment; filename=estimate-${estimate.id}.${extension}`
     );
 
     if (typeof data === 'string') {

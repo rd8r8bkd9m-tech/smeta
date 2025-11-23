@@ -14,10 +14,7 @@ export class PdfExportService {
       doc.on('error', reject);
 
       // Header
-      doc
-        .fontSize(20)
-        .text('СМЕТА', { align: 'center' })
-        .moveDown();
+      doc.fontSize(20).text('СМЕТА', { align: 'center' }).moveDown();
 
       // Estimate info
       doc.fontSize(12);
@@ -54,23 +51,20 @@ export class PdfExportService {
         doc.text(item.unit, x0 + colWidths[0] + colWidths[1], y, {
           width: colWidths[2],
         });
-        doc.text(
-          item.quantity.toString(),
-          x0 + colWidths[0] + colWidths[1] + colWidths[2],
-          y,
-          { width: colWidths[3] },
-        );
+        doc.text(item.quantity.toString(), x0 + colWidths[0] + colWidths[1] + colWidths[2], y, {
+          width: colWidths[3],
+        });
         doc.text(
           item.unitPrice.toFixed(2),
           x0 + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3],
           y,
-          { width: colWidths[4] },
+          { width: colWidths[4] }
         );
         doc.text(
           item.totalPrice.toFixed(2),
           x0 + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4],
           y,
-          { width: colWidths[5] },
+          { width: colWidths[5] }
         );
         y += 25;
       });
@@ -80,10 +74,7 @@ export class PdfExportService {
       doc
         .font('Helvetica-Bold')
         .fontSize(14)
-        .text(
-          `ИТОГО: ${estimate.totalCost.toFixed(2)} ${estimate.currency}`,
-          { align: 'right' },
-        );
+        .text(`ИТОГО: ${estimate.totalCost.toFixed(2)} ${estimate.currency}`, { align: 'right' });
 
       doc.end();
     });

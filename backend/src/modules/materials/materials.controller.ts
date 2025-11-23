@@ -27,14 +27,7 @@ export class MaterialsController {
 
   @Patch(':id/price')
   @ApiOperation({ summary: 'Update material price' })
-  updatePrice(
-    @Param('id') id: string,
-    @Body() body: { price: number; priceDate: string },
-  ) {
-    return this.materialsService.updatePrice(
-      id,
-      body.price,
-      new Date(body.priceDate),
-    );
+  updatePrice(@Param('id') id: string, @Body() body: { price: number; priceDate: string }) {
+    return this.materialsService.updatePrice(id, body.price, new Date(body.priceDate));
   }
 }

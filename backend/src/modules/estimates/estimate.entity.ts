@@ -42,10 +42,10 @@ export class Estimate {
   @Column({ default: 'draft' })
   status: string;
 
-  @OneToMany(() => EstimateItem, (item) => item.estimate, { cascade: true })
+  @OneToMany(() => EstimateItem, item => item.estimate, { cascade: true })
   items: EstimateItem[];
 
-  @ManyToOne(() => User, (user) => user.estimates)
+  @ManyToOne(() => User, user => user.estimates)
   user: User;
 
   @CreateDateColumn()

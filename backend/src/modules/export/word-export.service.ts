@@ -12,15 +12,15 @@ export class WordExportService {
 
   constructor(private configService: ConfigService) {
     // Get template path from environment or use default
-    const templatesDir = this.configService.get('TEMPLATES_DIR') || 
-                        path.join(process.cwd(), 'templates');
+    const templatesDir =
+      this.configService.get('TEMPLATES_DIR') || path.join(process.cwd(), 'templates');
     this.templatePath = path.join(templatesDir, 'estimate-template.docx');
   }
 
   async generate(estimate: Estimate): Promise<Buffer> {
     // Load template
     const templatePath = this.templatePath;
-    
+
     // If template doesn't exist, generate simple document
     if (!fs.existsSync(templatePath)) {
       return this.generateSimple(estimate);
@@ -69,13 +69,13 @@ export class WordExportService {
     content += `Проект: ${estimate.project || ''}\n`;
     content += `Дата: ${new Date(estimate.createdAt).toLocaleDateString('ru-RU')}\n\n`;
     content += `№\tНаименование\tЕд.изм.\tКол-во\tЦена\tСумма\n`;
-    
+
     estimate.items.forEach((item, index) => {
       content += `${index + 1}\t${item.name}\t${item.unit}\t${item.quantity}\t${item.unitPrice.toFixed(2)}\t${item.totalPrice.toFixed(2)}\n`;
     });
-    
+
     content += `\nИТОГО: ${estimate.totalCost.toFixed(2)} ${estimate.currency}`;
-    
+
     return Buffer.from(content, 'utf-8');
   }
 }

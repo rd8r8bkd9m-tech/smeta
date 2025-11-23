@@ -22,14 +22,7 @@ export class ExcelExportService {
 
     // Add items
     estimate.items.forEach((item, index) => {
-      data.push([
-        index + 1,
-        item.name,
-        item.unit,
-        item.quantity,
-        item.unitPrice,
-        item.totalPrice,
-      ]);
+      data.push([index + 1, item.name, item.unit, item.quantity, item.unitPrice, item.totalPrice]);
     });
 
     // Add total
@@ -40,14 +33,7 @@ export class ExcelExportService {
     const ws = XLSX.utils.aoa_to_sheet(data);
 
     // Set column widths
-    ws['!cols'] = [
-      { wch: 5 },
-      { wch: 40 },
-      { wch: 10 },
-      { wch: 12 },
-      { wch: 15 },
-      { wch: 15 },
-    ];
+    ws['!cols'] = [{ wch: 5 }, { wch: 40 }, { wch: 10 }, { wch: 12 }, { wch: 15 }, { wch: 15 }];
 
     // Add worksheet to workbook
     XLSX.utils.book_append_sheet(wb, ws, 'Смета');

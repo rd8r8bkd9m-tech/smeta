@@ -11,13 +11,10 @@ export class ExportService {
   constructor(
     private pdfExportService: PdfExportService,
     private excelExportService: ExcelExportService,
-    private wordExportService: WordExportService,
+    private wordExportService: WordExportService
   ) {}
 
-  async export(
-    estimate: Estimate,
-    format: ExportFormat,
-  ): Promise<Buffer | string> {
+  async export(estimate: Estimate, format: ExportFormat): Promise<Buffer | string> {
     switch (format) {
       case 'pdf':
         return this.pdfExportService.generate(estimate);
@@ -35,8 +32,7 @@ export class ExportService {
   getContentType(format: ExportFormat): string {
     const contentTypes = {
       pdf: 'application/pdf',
-      excel:
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      excel: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       word: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       json: 'application/json',
     };

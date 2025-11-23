@@ -7,7 +7,7 @@ import { Material } from './material.entity';
 export class MaterialsService {
   constructor(
     @InjectRepository(Material)
-    private materialRepository: Repository<Material>,
+    private materialRepository: Repository<Material>
   ) {}
 
   async create(createMaterialDto: any): Promise<Material> {
@@ -29,10 +29,9 @@ export class MaterialsService {
     }
 
     if (filters?.search) {
-      query.andWhere(
-        '(material.code ILIKE :search OR material.name ILIKE :search)',
-        { search: `%${filters.search}%` },
-      );
+      query.andWhere('(material.code ILIKE :search OR material.name ILIKE :search)', {
+        search: `%${filters.search}%`,
+      });
     }
 
     if (filters?.region) {
@@ -54,11 +53,7 @@ export class MaterialsService {
     });
   }
 
-  async updatePrice(
-    id: string,
-    price: number,
-    priceDate: Date,
-  ): Promise<Material> {
+  async updatePrice(id: string, price: number, priceDate: Date): Promise<Material> {
     await this.materialRepository.update(id, { price, priceDate });
     return this.materialRepository.findOne({ where: { id } });
   }

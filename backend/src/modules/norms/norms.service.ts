@@ -7,7 +7,7 @@ import { Norm, NormType } from './norm.entity';
 export class NormsService {
   constructor(
     @InjectRepository(Norm)
-    private normRepository: Repository<Norm>,
+    private normRepository: Repository<Norm>
   ) {}
 
   async create(createNormDto: any): Promise<Norm> {
@@ -36,7 +36,7 @@ export class NormsService {
     if (filters?.search) {
       query.andWhere(
         '(norm.code ILIKE :search OR norm.name ILIKE :search OR norm.description ILIKE :search)',
-        { search: `%${filters.search}%` },
+        { search: `%${filters.search}%` }
       );
     }
 
@@ -85,7 +85,7 @@ export class NormsService {
   }
 
   async bulkImport(norms: any[]): Promise<void> {
-    const entities = norms.map((norm) => this.normRepository.create(norm));
+    const entities = norms.map(norm => this.normRepository.create(norm));
     // Save in chunks to avoid memory issues
     for (let i = 0; i < entities.length; i += 1000) {
       const chunk = entities.slice(i, i + 1000);

@@ -21,10 +21,10 @@ export class CoefficientsController {
 
   @Post('apply')
   @ApiOperation({ summary: 'Apply coefficients to base value' })
-  apply(@Body() body: { baseValue: number; coefficients: string[] }): { value: number; applied: CoefficientRule[] } {
-    return this.coefficientsService.applyCoefficients(
-      body.baseValue,
-      body.coefficients,
-    );
+  apply(@Body() body: { baseValue: number; coefficients: string[] }): {
+    value: number;
+    applied: CoefficientRule[];
+  } {
+    return this.coefficientsService.applyCoefficients(body.baseValue, body.coefficients);
   }
 }

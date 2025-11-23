@@ -10,12 +10,7 @@ import { EstimatesModule } from '../estimates/estimates.module';
 @Module({
   imports: [EstimatesModule, ConfigModule],
   controllers: [ExportController],
-  providers: [
-    ExportService,
-    PdfExportService,
-    ExcelExportService,
-    WordExportService,
-  ],
+  providers: [ExportService, PdfExportService, ExcelExportService, WordExportService],
   exports: [ExportService],
 })
 export class ExportModule {}

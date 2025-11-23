@@ -8,7 +8,7 @@ import { NormMatchingService } from './norm-matching.service';
 export class NormsController {
   constructor(
     private readonly normsService: NormsService,
-    private readonly normMatchingService: NormMatchingService,
+    private readonly normMatchingService: NormMatchingService
   ) {}
 
   @Post()

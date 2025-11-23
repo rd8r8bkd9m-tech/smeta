@@ -12,7 +12,7 @@ export class EstimatesService {
     private estimateRepository: Repository<Estimate>,
     @InjectRepository(EstimateItem)
     private itemRepository: Repository<EstimateItem>,
-    private calculationEngine: CalculationEngine,
+    private calculationEngine: CalculationEngine
   ) {}
 
   async create(createEstimateDto: any, userId: string): Promise<Estimate> {
@@ -23,18 +23,16 @@ export class EstimatesService {
 
     // Calculate item totals
     if (estimate.items) {
-      estimate.items = estimate.items.map((item) => ({
+      estimate.items = estimate.items.map(item => ({
         ...item,
         totalPrice: this.calculationEngine.calculateItemTotal(
           item.quantity,
           item.unitPrice,
-          item.coefficients,
+          item.coefficients
         ),
       }));
 
-      estimate.totalCost = this.calculationEngine.calculateEstimateTotal(
-        estimate.items,
-      );
+      estimate.totalCost = this.calculationEngine.calculateEstimateTotal(estimate.items);
     }
 
     return this.estimateRepository.save(estimate);
@@ -52,10 +50,9 @@ export class EstimatesService {
     }
 
     if (filters?.search) {
-      query.andWhere(
-        '(estimate.title ILIKE :search OR estimate.client ILIKE :search)',
-        { search: `%${filters.search}%` },
-      );
+      query.andWhere('(estimate.title ILIKE :search OR estimate.client ILIKE :search)', {
+        search: `%${filters.search}%`,
+      });
     }
 
     return query.getMany();
@@ -68,29 +65,23 @@ export class EstimatesService {
     });
   }
 
-  async update(
-    id: string,
-    updateEstimateDto: any,
-    userId: string,
-  ): Promise<Estimate> {
+  async update(id: string, updateEstimateDto: any, userId: string): Promise<Estimate> {
     const estimate = await this.findOne(id, userId);
-    
+
     Object.assign(estimate, updateEstimateDto);
     estimate.version += 1;
 
     if (estimate.items) {
-      estimate.items = estimate.items.map((item) => ({
+      estimate.items = estimate.items.map(item => ({
         ...item,
         totalPrice: this.calculationEngine.calculateItemTotal(
           item.quantity,
           item.unitPrice,
-          item.coefficients,
+          item.coefficients
         ),
       }));
 
-      estimate.totalCost = this.calculationEngine.calculateEstimateTotal(
-        estimate.items,
-      );
+      estimate.totalCost = this.calculationEngine.calculateEstimateTotal(estimate.items);
     }
 
     return this.estimateRepository.save(estimate);

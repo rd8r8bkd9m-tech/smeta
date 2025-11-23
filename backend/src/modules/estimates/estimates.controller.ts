@@ -38,11 +38,7 @@ export class EstimatesController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update estimate' })
-  update(
-    @Param('id') id: string,
-    @Body() updateEstimateDto: any,
-    @Request() req: any,
-  ) {
+  update(@Param('id') id: string, @Body() updateEstimateDto: any, @Request() req: any) {
     return this.estimatesService.update(id, updateEstimateDto, req.user?.id);
   }
 

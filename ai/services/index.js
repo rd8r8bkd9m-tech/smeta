@@ -1,6 +1,6 @@
 /**
  * AI Service for Construction Cost Estimation
- * 
+ *
  * Provides:
  * - Work classification from text
  * - Photo recognition of construction work
@@ -8,8 +8,8 @@
  * - Cost estimation using AI
  */
 
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-const natural = require('natural');
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import natural from 'natural';
 
 class AIEstimationService {
   constructor(apiKey) {
@@ -23,7 +23,7 @@ class AIEstimationService {
    */
   async classifyWork(description) {
     const model = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
-    
+
     const prompt = `Классифицируй строительную работу:
 "${description}"
 
@@ -38,7 +38,7 @@ class AIEstimationService {
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
-    
+
     try {
       return JSON.parse(text);
     } catch (e) {
@@ -51,11 +51,9 @@ class AIEstimationService {
    */
   async matchToNorms(description, availableNorms) {
     const model = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
-    
-    const normsText = availableNorms.map(n => 
-      `${n.code}: ${n.name}`
-    ).join('\n');
-    
+
+    const normsText = availableNorms.map(n => `${n.code}: ${n.name}`).join('\n');
+
     const prompt = `Найди наиболее подходящие нормы ФЕР/ГЭСН для работы:
 "${description}"
 
@@ -74,7 +72,7 @@ ${normsText}
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
-    
+
     try {
       return JSON.parse(text);
     } catch (e) {
@@ -87,7 +85,7 @@ ${normsText}
    */
   async generateEstimate(projectDescription) {
     const model = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
-    
+
     const prompt = `Создай детальную смету для проекта:
 "${projectDescription}"
 
@@ -112,7 +110,7 @@ ${normsText}
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
-    
+
     try {
       return JSON.parse(text);
     } catch (e) {
@@ -125,7 +123,7 @@ ${normsText}
    */
   async analyzePhoto(imageData) {
     const model = this.genAI.getGenerativeModel({ model: 'gemini-pro-vision' });
-    
+
     const prompt = `Проанализируй фото строительного объекта и определи:
 1. Тип выполняемых работ
 2. Состояние объекта
@@ -134,17 +132,19 @@ ${normsText}
 
 Верни в формате JSON.`;
 
-    const imageParts = [{
-      inlineData: {
-        data: imageData,
-        mimeType: 'image/jpeg'
-      }
-    }];
+    const imageParts = [
+      {
+        inlineData: {
+          data: imageData,
+          mimeType: 'image/jpeg',
+        },
+      },
+    ];
 
     const result = await model.generateContent([prompt, ...imageParts]);
     const response = await result.response;
     const text = response.text();
-    
+
     try {
       return JSON.parse(text);
     } catch (e) {
@@ -157,9 +157,9 @@ ${normsText}
    */
   calculateVolumes(params) {
     const { length, width, height, type } = params;
-    
+
     const results = {};
-    
+
     switch (type) {
       case 'room':
         results.floorArea = length * width; // м²
@@ -167,18 +167,18 @@ ${normsText}
         results.ceilingArea = length * width; // м²
         results.volume = length * width * height; // м³
         break;
-        
+
       case 'wall':
         results.area = length * height; // м²
         results.volume = length * height * (width || 0.1); // м³
         break;
-        
+
       case 'floor':
         results.area = length * width; // м²
         results.volume = length * width * (height || 0.05); // м³
         break;
     }
-    
+
     return results;
   }
 
@@ -188,19 +188,19 @@ ${normsText}
   calculateSimilarity(text1, text2) {
     this.tfidf.addDocument(text1);
     this.tfidf.addDocument(text2);
-    
+
     const terms1 = this.tokenizer.tokenize(text1.toLowerCase());
     const terms2 = this.tokenizer.tokenize(text2.toLowerCase());
-    
+
     let commonTerms = 0;
     terms1.forEach(term => {
       if (terms2.includes(term)) {
         commonTerms++;
       }
     });
-    
+
     return commonTerms / Math.max(terms1.length, terms2.length);
   }
 }
 
-module.exports = AIEstimationService;
+export default AIEstimationService;

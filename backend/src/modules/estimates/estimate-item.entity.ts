@@ -1,10 +1,4 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  JoinColumn,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { Estimate } from './estimate.entity';
 
 @Entity('estimate_items')
@@ -42,7 +36,7 @@ export class EstimateItem {
   @Column({ type: 'int' })
   order: number;
 
-  @ManyToOne(() => Estimate, (estimate) => estimate.items, {
+  @ManyToOne(() => Estimate, estimate => estimate.items, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'estimateId' })

@@ -29,7 +29,7 @@ export class CoefficientsService {
       { name: 'Владивосток', code: 'REG_VVO', value: 1.15 },
     ];
 
-    regionalCoefficients.forEach((coef) => {
+    regionalCoefficients.forEach(coef => {
       this.coefficients.set(coef.code, { ...coef, category: 'regional' });
     });
 
@@ -55,7 +55,7 @@ export class CoefficientsService {
       },
     ];
 
-    difficultyCoefficients.forEach((coef) => {
+    difficultyCoefficients.forEach(coef => {
       this.coefficients.set(coef.code, coef);
     });
 
@@ -75,7 +75,7 @@ export class CoefficientsService {
       },
     ];
 
-    seasonCoefficients.forEach((coef) => {
+    seasonCoefficients.forEach(coef => {
       this.coefficients.set(coef.code, coef);
     });
   }
@@ -87,19 +87,19 @@ export class CoefficientsService {
   getAllCoefficients(category?: string): CoefficientRule[] {
     const all = Array.from(this.coefficients.values());
     if (category) {
-      return all.filter((c) => c.category === category);
+      return all.filter(c => c.category === category);
     }
     return all;
   }
 
   applyCoefficients(
     baseValue: number,
-    coefficientCodes: string[],
+    coefficientCodes: string[]
   ): { value: number; applied: CoefficientRule[] } {
     let value = baseValue;
     const applied: CoefficientRule[] = [];
 
-    coefficientCodes.forEach((code) => {
+    coefficientCodes.forEach(code => {
       const coef = this.getCoefficient(code);
       if (coef) {
         value *= coef.value;

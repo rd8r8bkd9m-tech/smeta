@@ -34,7 +34,7 @@ export class User {
   @Column({ default: true })
   isActive: boolean;
 
-  @OneToMany(() => Estimate, (estimate) => estimate.user)
+  @OneToMany(() => Estimate, estimate => estimate.user)
   estimates: Estimate[];
 
   @CreateDateColumn()
