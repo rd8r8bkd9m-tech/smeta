@@ -1,70 +1,70 @@
-# 📚 API Reference
+# 📚 Справочник API
 
-## Base URL
+## Базовый URL
 
 ```
 http://localhost:3000/api/v1
 ```
 
-## Authentication
+## Аутентификация
 
-All protected endpoints require JWT token in Authorization header:
+Все защищенные эндпоинты требуют JWT токен в заголовке Authorization:
 
 ```
-Authorization: Bearer <your_jwt_token>
+Authorization: Bearer <ваш-токен>
 ```
 
-## Endpoints
+## Эндпоинты
 
-### Authentication
+### Аутентификация
 
-#### Register User
+#### Регистрация Пользователя
 ```http
 POST /auth/register
 
-Request:
+Запрос:
 {
   "email": "user@example.com",
   "password": "SecurePassword123!",
-  "firstName": "Ivan",
-  "lastName": "Petrov",
+  "firstName": "Иван",
+  "lastName": "Петров",
   "company": "ООО Строй"
 }
 
-Response:
+Ответ:
 {
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "user": {
     "id": "uuid",
     "email": "user@example.com",
-    "firstName": "Ivan",
-    "lastName": "Petrov",
+    "firstName": "Иван",
+    "lastName": "Петров",
     "role": "user"
   }
 }
 ```
 
-#### Login
+#### Вход
 ```http
 POST /auth/login
 
-Request:
+Запрос:
 {
   "email": "user@example.com",
   "password": "SecurePassword123!"
 }
 
-Response: Same as register
+Ответ: Аналогично регистрации
 ```
 
-### Estimates
+### Сметы
 
-#### Create Estimate
+#### Создание Сметы
 ```http
 POST /estimates
-Authorization: Bearer <token>
+Authorization: Bearer <токен>
 
-Request:
+Запрос:
 {
   "title": "Ремонт офиса",
   "description": "Капитальный ремонт офиса 100 м²",
@@ -98,7 +98,7 @@ Request:
   ]
 }
 
-Response:
+Ответ:
 {
   "id": "uuid",
   "title": "Ремонт офиса",
@@ -109,11 +109,11 @@ Response:
 }
 ```
 
-#### Get All Estimates
+#### Получение Всех Смет
 ```http
 GET /estimates?status=draft&search=ремонт
 
-Response:
+Ответ:
 [
   {
     "id": "uuid",
@@ -127,11 +127,11 @@ Response:
 ]
 ```
 
-#### Get Estimate by ID
+#### Получение Сметы по ID
 ```http
 GET /estimates/:id
 
-Response:
+Ответ:
 {
   "id": "uuid",
   "title": "Ремонт офиса",
@@ -154,40 +154,40 @@ Response:
 }
 ```
 
-#### Update Estimate
+#### Обновление Сметы
 ```http
 PATCH /estimates/:id
 
-Request:
+Запрос:
 {
   "title": "Ремонт офиса (обновлено)",
   "status": "approved"
 }
 
-Response: Updated estimate object
+Ответ: Обновленный объект сметы
 ```
 
-#### Delete Estimate
+#### Удаление Сметы
 ```http
 DELETE /estimates/:id
 
-Response: 204 No Content
+Ответ: 204 No Content
 ```
 
-#### Duplicate Estimate
+#### Дублирование Сметы
 ```http
 POST /estimates/:id/duplicate
 
-Response: New estimate object with " (копия)" suffix
+Ответ: Новый объект сметы с суффиксом " (копия)"
 ```
 
-### Norms (FER/GESN/TER)
+### Нормы (ФЕР/ГЭСН/ТЕР)
 
-#### Search Norms
+#### Поиск Норм
 ```http
 GET /norms?search=штукатурка&type=GESN&category=отделочные
 
-Response:
+Ответ:
 [
   {
     "id": "uuid",
@@ -214,94 +214,94 @@ Response:
 ]
 ```
 
-#### Get Norm by Code
+#### Получение Нормы по Коду
 ```http
 GET /norms/:code/:type
 
-Example: GET /norms/ГЭСН-15-01-001-01/GESN
+Пример: GET /norms/ГЭСН-15-01-001-01/GESN
 
-Response: Single norm object
+Ответ: Один объект нормы
 ```
 
-#### Match Work to Norms (AI)
+#### Подбор Норм к Работе (ИИ)
 ```http
 POST /norms/match
 
-Request:
+Запрос:
 {
   "description": "нужно оштукатурить стены в комнате 20 квадратных метров",
   "quantity": 20,
   "unit": "м²"
 }
 
-Response:
+Ответ:
 [
   {
-    "norm": { /* norm object */ },
+    "norm": { /* объект нормы */ },
     "confidence": 0.95,
     "reason": "Точное совпадение по описанию работ"
   },
   {
-    "norm": { /* norm object */ },
+    "norm": { /* объект нормы */ },
     "confidence": 0.75,
     "reason": "Похожий тип работ"
   }
 ]
 ```
 
-#### Generate Estimate from Text (AI)
+#### Генерация Сметы из Текста (ИИ)
 ```http
 POST /norms/generate-estimate
 
-Request:
+Запрос:
 {
   "text": "Ремонт 2-комнатной квартиры 52 кв.м. Нужно выровнять стены штукатуркой, покрасить стены и потолки, уложить ламинат в комнатах и плитку в ванной."
 }
 
-Response:
+Ответ:
 [
   {
     "description": "Штукатурка стен",
     "quantity": 95,
     "unit": "м²",
-    "suggestedNorms": [ /* norms */ ],
-    "bestMatch": { /* best matching norm */ }
+    "suggestedNorms": [ /* нормы */ ],
+    "bestMatch": { /* лучшая подходящая норма */ }
   },
   {
     "description": "Укладка ламината",
     "quantity": 40,
     "unit": "м²",
-    "suggestedNorms": [ /* norms */ ]
+    "suggestedNorms": [ /* нормы */ ]
   }
 ]
 ```
 
-#### Bulk Import Norms
+#### Массовый Импорт Норм
 ```http
 POST /norms/bulk-import
 
-Request:
+Запрос:
 {
   "norms": [
     {
       "code": "ФЕР-01-001-01",
       "type": "FER",
       "name": "...",
-      /* other fields */
+      /* другие поля */
     }
   ]
 }
 
-Response: { imported: 100, failed: 0 }
+Ответ: { imported: 100, failed: 0 }
 ```
 
-### Materials
+### Материалы
 
-#### Get All Materials
+#### Получение Всех Материалов
 ```http
 GET /materials?category=строительные&search=цемент&region=moscow
 
-Response:
+Ответ:
 [
   {
     "id": "uuid",
@@ -319,67 +319,67 @@ Response:
 ]
 ```
 
-#### Get Material by Code
+#### Получение Материала по Коду
 ```http
 GET /materials/:code
 
-Response: Single material object
+Ответ: Один объект материала
 ```
 
-#### Update Material Price
+#### Обновление Цены Материала
 ```http
 PATCH /materials/:id/price
 
-Request:
+Запрос:
 {
   "price": 6000.00,
   "priceDate": "2025-01-15"
 }
 
-Response: Updated material object
+Ответ: Обновленный объект материала
 ```
 
-### Export
+### Экспорт
 
-#### Export to PDF
+#### Экспорт в PDF
 ```http
 GET /export/:id?format=pdf
 
-Response: Binary PDF file
+Ответ: Бинарный файл PDF
 Content-Type: application/pdf
 Content-Disposition: attachment; filename=estimate-{id}.pdf
 ```
 
-#### Export to Excel
+#### Экспорт в Excel
 ```http
 GET /export/:id?format=excel
 
-Response: Binary XLSX file
+Ответ: Бинарный файл XLSX
 Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
 ```
 
-#### Export to Word
+#### Экспорт в Word
 ```http
 GET /export/:id?format=word
 
-Response: Binary DOCX file
+Ответ: Бинарный файл DOCX
 Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
 ```
 
-#### Export to JSON
+#### Экспорт в JSON
 ```http
 GET /export/:id?format=json
 
-Response: JSON estimate object
+Ответ: JSON объект сметы
 ```
 
-### Coefficients
+### Коэффициенты
 
-#### Get All Coefficients
+#### Получение Всех Коэффициентов
 ```http
 GET /coefficients
 
-Response:
+Ответ:
 [
   {
     "name": "Москва",
@@ -396,24 +396,24 @@ Response:
 ]
 ```
 
-#### Get Coefficients by Category
+#### Получение Коэффициентов по Категории
 ```http
 GET /coefficients?category=regional
 
-Response: Filtered coefficients
+Ответ: Отфильтрованные коэффициенты
 ```
 
-#### Apply Coefficients
+#### Применение Коэффициентов
 ```http
 POST /coefficients/apply
 
-Request:
+Запрос:
 {
   "baseValue": 100000,
   "coefficients": ["REG_MSK", "DIFF_HARD", "SEASON_WINTER"]
 }
 
-Response:
+Ответ:
 {
   "value": 126500.00,
   "applied": [
@@ -436,17 +436,17 @@ Response:
 }
 ```
 
-## Error Responses
+## Ответы с Ошибками
 
 ### 400 Bad Request
 ```json
 {
   "statusCode": 400,
-  "message": "Validation failed",
+  "message": "Ошибка валидации",
   "errors": [
     {
       "field": "email",
-      "message": "Invalid email format"
+      "message": "Неверный формат email"
     }
   ]
 }
@@ -456,7 +456,7 @@ Response:
 ```json
 {
   "statusCode": 401,
-  "message": "Unauthorized"
+  "message": "Не авторизован"
 }
 ```
 
@@ -464,7 +464,7 @@ Response:
 ```json
 {
   "statusCode": 404,
-  "message": "Estimate not found"
+  "message": "Смета не найдена"
 }
 ```
 
@@ -472,26 +472,26 @@ Response:
 ```json
 {
   "statusCode": 500,
-  "message": "Internal server error"
+  "message": "Внутренняя ошибка сервера"
 }
 ```
 
-## Rate Limiting
+## Ограничение Запросов
 
-- **Rate**: 100 requests per minute per IP
-- **Headers**: 
+- **Лимит**: 100 запросов в минуту на IP
+- **Заголовки**: 
   - `X-RateLimit-Limit`: 100
   - `X-RateLimit-Remaining`: 95
   - `X-RateLimit-Reset`: 1705320000
 
-## Pagination
+## Пагинация
 
-For endpoints returning lists:
+Для эндпоинтов, возвращающих списки:
 
 ```http
 GET /estimates?page=1&limit=20
 
-Response:
+Ответ:
 {
   "data": [...],
   "meta": {
@@ -503,9 +503,9 @@ Response:
 }
 ```
 
-## Swagger Documentation
+## Документация Swagger
 
-Interactive API documentation available at:
+Интерактивная документация API доступна по адресу:
 ```
 http://localhost:3000/api/docs
 ```

@@ -1,13 +1,13 @@
-# 📦 Deployment Guide
+# 📦 Руководство по Развертыванию
 
-## Prerequisites
+## Предварительные Требования
 
 - Docker & Docker Compose
 - Node.js 18+
 - PostgreSQL 14+
-- Rust (for WASM)
+- Rust (для WASM)
 
-## Local Development
+## Локальная Разработка
 
 ### 1. Backend
 
@@ -31,10 +31,10 @@ npm run dev
 ```bash
 cd mobile
 npm install
-npm run ios    # or npm run android
+npm run ios    # или npm run android
 ```
 
-## Production Deployment
+## Продакшн Развертывание
 
 ### Docker
 
@@ -42,18 +42,18 @@ npm run ios    # or npm run android
 docker-compose up -d
 ```
 
-### Manual
+### Вручную
 
-1. Build backend: `cd backend && npm run build`
-2. Build WASM: `cd wasm_core && wasm-pack build`
-3. Build frontend: `cd frontend && npm run build`
-4. Deploy to server
+1. Сборка backend: `cd backend && npm run build`
+2. Сборка WASM: `cd wasm_core && wasm-pack build`
+3. Сборка frontend: `cd frontend && npm run build`
+4. Развертывание на сервере
 
-## Environment Variables
+## Переменные Окружения
 
-See `.env.example` files in each module.
+См. файлы `.env.example` в каждом модуле.
 
-## Database Migration
+## Миграция Базы Данных
 
 ```bash
 cd backend

@@ -1,68 +1,68 @@
-# 🏗️ Smeta - Complete Multi-Platform Construction Cost Estimation System
+# 🏗️ Смета - Полная Мультиплатформенная Система Расчета Строительных Смет
 
-## 📋 Overview
+## 📋 Обзор
 
-Professional construction cost estimation application with full support for FER/GESN/TER Russian construction norms, AI-powered estimation, multi-platform support (Web/Mobile/Desktop), and offline capabilities.
+Профессиональное приложение для расчета строительных смет с полной поддержкой российских норм ФЕР/ГЭСН/ТЕР, оценкой на основе ИИ, мультиплатформенной поддержкой (Web/Mobile/Desktop) и возможностями офлайн работы.
 
-## 🎯 Key Features
+## 🎯 Ключевые Возможности
 
-### 💰 Cost Estimation
-- **FER/GESN/TER Norms**: Complete database of Russian construction norms
-- **Automatic Norm Matching**: AI-powered selection of appropriate norms
-- **Volume Calculations**: Automatic calculation of work volumes (m², m³, linear meters)
-- **Regional Coefficients**: Support for regional pricing adjustments
-- **Price Indices**: Historical price recalculation with inflation indices
+### 💰 Расчет Смет
+- **Нормы ФЕР/ГЭСН/ТЕР**: Полная база российских строительных норм
+- **Автоматический Подбор Норм**: Выбор подходящих норм на основе ИИ
+- **Расчет Объемов**: Автоматический расчет объемов работ (м², м³, погонные метры)
+- **Региональные Коэффициенты**: Поддержка региональных ценовых корректировок
+- **Индексы Цен**: Исторический пересчет цен с индексами инфляции
 
-### �� AI Capabilities
-- **Text-to-Estimate**: Generate estimates from project descriptions
-- **Photo Recognition**: Identify construction work from photos
-- **Work Classification**: Automatic categorization of construction works
-- **Norm Recommendation**: AI suggests appropriate FER/GESN/TER codes
-- **BIM/IFC Support**: Parse and analyze Building Information Models
+### 🤖 Возможности ИИ
+- **Текст-в-Смету**: Генерация смет из описаний проектов
+- **Распознавание Фото**: Определение строительных работ по фотографиям
+- **Классификация Работ**: Автоматическая категоризация строительных работ
+- **Рекомендации Норм**: ИИ предлагает подходящие коды ФЕР/ГЭСН/ТЕР
+- **Поддержка BIM/IFC**: Анализ Building Information Models
 
-### 📱 Multi-Platform
-- **Web Application**: Progressive Web App with offline support
-- **Mobile Apps**: Native iOS and Android applications
-- **Desktop**: Installable desktop application
-- **Offline Mode**: Full functionality without internet connection
-- **Cloud Sync**: Synchronize data across devices
+### 📱 Мультиплатформенность
+- **Web Приложение**: Progressive Web App с офлайн поддержкой
+- **Мобильные Приложения**: Нативные приложения для iOS и Android
+- **Desktop**: Устанавливаемое настольное приложение
+- **Офлайн Режим**: Полная функциональность без интернета
+- **Облачная Синхронизация**: Синхронизация данных между устройствами
 
-## 🚀 Technology Stack
+## 🚀 Технологический Стек
 
 ### Backend
-- **NestJS 10** - Enterprise Node.js framework
-- **TypeORM** - ORM for database operations
-- **PostgreSQL 14** - Main database
-- **JWT + Passport** - Authentication
-- **Swagger** - API documentation
+- **NestJS 10** - Enterprise Node.js фреймворк
+- **TypeORM** - ORM для операций с базой данных
+- **PostgreSQL 14** - Основная база данных
+- **JWT + Passport** - Аутентификация
+- **Swagger** - Документация API
 
-### WASM Core
-- **Rust** - Systems programming language
-- **wasm-bindgen** - JavaScript bindings
-- **SIMD** - Optimized calculations
-- **Binary Format** - Efficient norm storage
+### WASM Ядро
+- **Rust** - Системный язык программирования
+- **wasm-bindgen** - JavaScript привязки
+- **SIMD** - Оптимизированные вычисления
+- **Бинарный Формат** - Эффективное хранение норм
 
 ### AI/ML
-- **Google Gemini API** - Large language model
-- **TensorFlow** - Machine learning
-- **Python** - Training scripts
+- **Google Gemini API** - Большая языковая модель
+- **TensorFlow** - Машинное обучение
+- **Python** - Скрипты для обучения
 
 ### Mobile
-- **React Native** - Cross-platform framework
-- **SQLite** - Offline database
-- **Camera API** - Photo capture
+- **React Native** - Кросс-платформенный фреймворк
+- **SQLite** - Офлайн база данных
+- **Camera API** - Захват фото
 
-## 📦 Directory Structure
+## 📦 Структура Директорий
 
 ```
 smeta/
 ├── backend/              # NestJS Backend API
-├── wasm_core/           # Rust WASM Core
+├── wasm_core/           # Rust WASM Ядро
 ├── frontend/            # React + Next.js
 ├── mobile/              # React Native
-├── ai/                  # AI/ML Module
-├── docs/                # Documentation
-└── devops/              # Deployment configs
+├── ai/                  # AI/ML Модуль
+├── docs/                # Документация
+└── devops/              # Конфигурации развертывания
 ```
 
-See full ARCHITECTURE.md for complete details.
+Полные детали см. в ARCHITECTURE.md.

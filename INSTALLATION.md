@@ -1,26 +1,26 @@
-# 📦 Installation Guide
+# 📦 Руководство по Установке
 
-## Complete Multi-Platform Construction Cost Estimation System
+## Полная Мультиплатформенная Система Расчета Строительных Смет
 
-This guide covers installation of all system components.
+Это руководство охватывает установку всех компонентов системы.
 
-## System Requirements
+## Системные Требования
 
-### Minimum Requirements
-- **CPU**: 2 cores
-- **RAM**: 4GB
-- **Storage**: 10GB
-- **OS**: Linux, macOS, or Windows 10+
+### Минимальные Требования
+- **CPU**: 2 ядра
+- **RAM**: 4ГБ
+- **Хранилище**: 10ГБ
+- **ОС**: Linux, macOS, или Windows 10+
 
-### Recommended Requirements
-- **CPU**: 4+ cores
-- **RAM**: 8GB+
-- **Storage**: 50GB SSD
-- **OS**: Ubuntu 22.04 LTS or macOS
+### Рекомендуемые Требования
+- **CPU**: 4+ ядра
+- **RAM**: 8ГБ+
+- **Хранилище**: 50ГБ SSD
+- **ОС**: Ubuntu 22.04 LTS или macOS
 
-## Prerequisites
+## Предварительные Требования
 
-### 1. Install Node.js 18+
+### 1. Установка Node.js 18+
 
 ```bash
 # Ubuntu/Debian
@@ -30,12 +30,12 @@ sudo apt-get install -y nodejs
 # macOS
 brew install node@18
 
-# Verify installation
+# Проверка установки
 node --version
 npm --version
 ```
 
-### 2. Install PostgreSQL 14+
+### 2. Установка PostgreSQL 14+
 
 ```bash
 # Ubuntu/Debian
@@ -44,12 +44,12 @@ sudo apt install postgresql postgresql-contrib
 # macOS
 brew install postgresql@14
 
-# Start PostgreSQL
+# Запуск PostgreSQL
 sudo systemctl start postgresql  # Linux
 brew services start postgresql@14  # macOS
 ```
 
-### 3. Install Rust (for WASM core)
+### 3. Установка Rust (для WASM ядра)
 
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
@@ -57,14 +57,14 @@ source $HOME/.cargo/env
 rustc --version
 ```
 
-### 4. Install wasm-pack
+### 4. Установка wasm-pack
 
 ```bash
 curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 wasm-pack --version
 ```
 
-### 5. Install Python 3.9+ (for AI module)
+### 5. Установка Python 3.9+ (для AI модуля)
 
 ```bash
 # Ubuntu/Debian
@@ -73,24 +73,24 @@ sudo apt install python3 python3-pip
 # macOS
 brew install python@3.9
 
-# Verify
+# Проверка
 python3 --version
 pip3 --version
 ```
 
-## Installation Steps
+## Шаги Установки
 
-### Step 1: Clone Repository
+### Шаг 1: Клонирование Репозитория
 
 ```bash
 git clone https://github.com/rd8r8bkd9m-tech/smeta.git
 cd smeta
 ```
 
-### Step 2: Database Setup
+### Шаг 2: Настройка Базы Данных
 
 ```bash
-# Create database user and database
+# Создание пользователя и базы данных
 sudo -u postgres psql
 CREATE USER smeta_user WITH PASSWORD 'smeta_password';
 CREATE DATABASE smeta_db OWNER smeta_user;
@@ -98,67 +98,67 @@ GRANT ALL PRIVILEGES ON DATABASE smeta_db TO smeta_user;
 \q
 ```
 
-### Step 3: Backend Setup
+### Шаг 3: Настройка Backend
 
 ```bash
 cd backend
 npm install
 cp .env.example .env
 
-# Edit .env with your database credentials
+# Отредактируйте .env с вашими данными базы данных
 nano .env
 
-# Run migrations
+# Запуск миграций
 npm run migration:run
 
-# Start backend
+# Запуск backend
 npm run start:dev
 ```
 
-Backend will be available at `http://localhost:3000`
+Backend будет доступен по адресу `http://localhost:3000`
 
-### Step 4: Build WASM Core
+### Шаг 4: Сборка WASM Ядра
 
 ```bash
 cd ../wasm_core
 wasm-pack build --target web --release
 
-# WASM module will be in pkg/ directory
+# WASM модуль будет в директории pkg/
 ```
 
-### Step 5: Frontend Setup
+### Шаг 5: Настройка Frontend
 
 ```bash
 cd ../frontend
 npm install
 cp .env.example .env
 
-# Edit .env
+# Отредактируйте .env
 nano .env
 
-# Start frontend
+# Запуск frontend
 npm run dev
 ```
 
-Frontend will be available at `http://localhost:5173`
+Frontend будет доступен по адресу `http://localhost:5173`
 
-### Step 6: AI Module Setup (Optional)
+### Шаг 6: Настройка AI Модуля (Опционально)
 
 ```bash
 cd ../ai
 npm install
 pip3 install -r requirements.txt
 
-# Set Gemini API key
-export GEMINI_API_KEY=your_api_key_here
+# Установите API ключ Gemini
+export GEMINI_API_KEY=ваш_api_ключ_здесь
 
-# Start AI service
+# Запуск AI сервиса
 npm start
 ```
 
-### Step 7: Mobile App Setup (Optional)
+### Шаг 7: Настройка Мобильного Приложения (Опционально)
 
-#### iOS (macOS only)
+#### iOS (только macOS)
 
 ```bash
 cd ../mobile
@@ -177,92 +177,92 @@ npm install
 npm run android
 ```
 
-## Docker Installation (Recommended)
+## Установка через Docker (Рекомендуется)
 
-For easier deployment, use Docker:
+Для упрощенного развертывания используйте Docker:
 
 ```bash
-# Install Docker and Docker Compose
-# See https://docs.docker.com/engine/install/
+# Установите Docker и Docker Compose
+# См. https://docs.docker.com/engine/install/
 
-# Start all services
+# Запуск всех сервисов
 docker-compose up -d
 
-# Services will be available at:
+# Сервисы будут доступны по адресам:
 # - Backend: http://localhost:3000
 # - Frontend: http://localhost:80
-# - Database: localhost:5432
+# - База данных: localhost:5432
 ```
 
-## Verification
+## Проверка
 
-### 1. Check Backend
+### 1. Проверка Backend
 
 ```bash
 curl http://localhost:3000/api/docs
 ```
 
-Should show Swagger API documentation.
+Должна отобразиться документация Swagger API.
 
-### 2. Check Frontend
+### 2. Проверка Frontend
 
-Open `http://localhost:5173` in browser.
+Откройте `http://localhost:5173` в браузере.
 
-### 3. Check Database
+### 3. Проверка Базы Данных
 
 ```bash
 psql -U smeta_user -d smeta_db -h localhost
-\dt  # List tables
+\dt  # Список таблиц
 ```
 
-## Troubleshooting
+## Устранение Неполадок
 
-### Backend won't start
+### Backend не запускается
 
-- Check PostgreSQL is running: `sudo systemctl status postgresql`
-- Verify database credentials in `.env`
-- Check logs: `npm run start:dev`
+- Проверьте, что PostgreSQL запущен: `sudo systemctl status postgresql`
+- Проверьте учетные данные базы данных в `.env`
+- Проверьте логи: `npm run start:dev`
 
-### WASM build fails
+### Сборка WASM не удается
 
-- Ensure Rust is installed: `rustc --version`
-- Install wasm-pack: `cargo install wasm-pack`
-- Check Cargo.toml syntax
+- Убедитесь, что Rust установлен: `rustc --version`
+- Установите wasm-pack: `cargo install wasm-pack`
+- Проверьте синтаксис Cargo.toml
 
-### Frontend errors
+### Ошибки Frontend
 
-- Clear node_modules: `rm -rf node_modules && npm install`
-- Check backend is running
-- Verify API URL in .env
+- Очистите node_modules: `rm -rf node_modules && npm install`
+- Проверьте, что backend запущен
+- Проверьте URL API в .env
 
-### Database connection errors
+### Ошибки подключения к базе данных
 
-- Check PostgreSQL is running
-- Verify credentials
-- Check firewall settings
+- Проверьте, что PostgreSQL запущен
+- Проверьте учетные данные
+- Проверьте настройки файрвола
 
-## Next Steps
+## Следующие Шаги
 
-1. **Import Norms Data**: Load FER/GESN/TER norms into database
-2. **Configure AI**: Set up Gemini API key
-3. **Create Admin User**: Register first user through API
-4. **Import Templates**: Load estimate templates
-5. **Configure Regional Coefficients**: Set up regional pricing
+1. **Импорт Данных Норм**: Загрузите нормы ФЕР/ГЭСН/ТЕР в базу данных
+2. **Настройка AI**: Установите API ключ Gemini
+3. **Создание Администратора**: Зарегистрируйте первого пользователя через API
+4. **Импорт Шаблонов**: Загрузите шаблоны смет
+5. **Настройка Региональных Коэффициентов**: Установите региональные цены
 
-## Support
+## Поддержка
 
-- **Documentation**: See `/docs` directory
+- **Документация**: См. директорию `/docs`
 - **Issues**: https://github.com/rd8r8bkd9m-tech/smeta/issues
-- **API Docs**: http://localhost:3000/api/docs
+- **API Документация**: http://localhost:3000/api/docs
 
-## Security Notes
+## Примечания по Безопасности
 
-- Change default database password
-- Use strong JWT secret
-- Enable HTTPS in production
-- Configure CORS properly
-- Keep API keys secure
+- Измените стандартный пароль базы данных
+- Используйте надежный JWT секрет
+- Включите HTTPS в продакшн
+- Настройте CORS правильно
+- Храните API ключи в безопасности
 
 ---
 
-**Installation complete! 🎉**
+**Установка завершена! 🎉**
