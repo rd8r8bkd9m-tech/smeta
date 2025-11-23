@@ -6,6 +6,13 @@
 
 import type { Estimate, EstimateItem } from '../types/index.js';
 
+/**
+ * Helper function to get display name for an item
+ */
+function getItemDisplayName(item: EstimateItem): string {
+  return item.name ? item.name.toLowerCase() : item.description.toLowerCase();
+}
+
 export interface PredictionResult {
   predictedCost: number;
   confidence: number;
@@ -138,9 +145,7 @@ export class AIEngine {
     }
 
     // Check for duplicate items
-    const itemNames = estimate.items.map(item =>
-      item.name ? item.name.toLowerCase() : item.description.toLowerCase()
-    );
+    const itemNames = estimate.items.map(getItemDisplayName);
     const duplicates: number[] = [];
     itemNames.forEach((name: string, index: number) => {
       if (itemNames.indexOf(name) !== index && !duplicates.includes(index)) {
@@ -185,9 +190,7 @@ export class AIEngine {
 
     // Suggest missing common items
     const commonItems = this.findCommonItems(historicalEstimates);
-    const currentItemNames = estimate.items.map(item =>
-      item.name ? item.name.toLowerCase() : item.description.toLowerCase()
-    );
+    const currentItemNames = estimate.items.map(getItemDisplayName);
 
     commonItems.forEach(commonItem => {
       if (
@@ -326,11 +329,7 @@ export class AIEngine {
     const totalEstimates = estimates.length;
 
     estimates.forEach(estimate => {
-      const uniqueNames = new Set<string>(
-        estimate.items.map(item =>
-          item.name ? item.name.toLowerCase() : item.description.toLowerCase()
-        )
-      );
+      const uniqueNames = new Set<string>(estimate.items.map(getItemDisplayName));
       uniqueNames.forEach((name: string) => {
         itemCounts.set(name, (itemCounts.get(name) || 0) + 1);
       });
@@ -385,17 +384,13 @@ export class AIEngine {
   }
 
   private suggestCategory(items: EstimateItem[], historical: Estimate[]): string | null {
-    const keywords = items
-      .map(item => (item.name ? item.name.toLowerCase() : item.description.toLowerCase()))
-      .join(' ');
+    const keywords = items.map(getItemDisplayName).join(' ');
 
     const categoryScores = new Map<string, number>();
     historical.forEach(estimate => {
       if (!estimate.category) return;
 
-      const estimateKeywords = estimate.items
-        .map(item => (item.name ? item.name.toLowerCase() : item.description.toLowerCase()))
-        .join(' ');
+      const estimateKeywords = estimate.items.map(getItemDisplayName).join(' ');
 
       const similarity = this.textSimilarity(keywords, estimateKeywords);
       categoryScores.set(

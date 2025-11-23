@@ -7,10 +7,16 @@ import { openDB, DBSchema, IDBPDatabase } from 'idb';
 import { logger } from '../utils/logger';
 import type { Estimate } from '../types/index.js';
 
+// Extended Estimate type for storage with sync metadata
+type StoredEstimate = Estimate & {
+  _lastModified?: number;
+  _synced?: boolean;
+};
+
 interface SmetaDB extends DBSchema {
   estimates: {
     key: string;
-    value: Estimate;
+    value: StoredEstimate;
     indexes: { 'by-date': string; 'by-client': string };
   };
   sync_queue: {
@@ -97,7 +103,7 @@ export class OfflineSyncManager {
         ...estimate,
         _lastModified: Date.now(),
         _synced: navigator.onLine,
-      } as Estimate & { _lastModified: number; _synced: boolean });
+      });
 
       // Queue for sync if offline
       if (!navigator.onLine) {
