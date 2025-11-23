@@ -24,3 +24,22 @@ build/
 # System files
 Thumbs.db
 desktop.ini
+
+# Rust build artifacts
+wasm_core/target/
+wasm_core/pkg/
+
+# Backend build artifacts
+backend/dist/
+backend/node_modules/
+
+# Mobile build artifacts
+mobile/node_modules/
+mobile/ios/Pods/
+mobile/android/.gradle/
+mobile/android/build/
+
+# AI module
+ai/node_modules/
+ai/models/*.h5
+ai/models/*.pb

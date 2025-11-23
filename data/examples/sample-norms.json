@@ -1,0 +1,99 @@
+[
+  {
+    "code": "ФЕР-01-001-01",
+    "type": "FER",
+    "name": "Устройство бетонной подготовки",
+    "description": "Устройство подготовки под полы бетонной толщиной 80 мм",
+    "unit": "м²",
+    "basePrice": 450.50,
+    "category": "Бетонные работы",
+    "subcategory": "Подготовительные работы",
+    "materials": [
+      {
+        "name": "Бетон B15",
+        "unit": "м³",
+        "quantity": 0.08,
+        "coefficient": 1.05
+      },
+      {
+        "name": "Армирующая сетка",
+        "unit": "м²",
+        "quantity": 1.0,
+        "coefficient": 1.02
+      }
+    ],
+    "labor": {
+      "hours": 0.5,
+      "category": "4 разряд"
+    },
+    "region": "moscow",
+    "validFrom": "2024-01-01",
+    "validTo": "2025-12-31"
+  },
+  {
+    "code": "ГЭСН-15-01-001-01",
+    "type": "GESN",
+    "name": "Штукатурка стен внутренняя",
+    "description": "Улучшенная штукатурка внутренних стен цементно-известковым раствором по кирпичу",
+    "unit": "м²",
+    "basePrice": 380.00,
+    "category": "Отделочные работы",
+    "subcategory": "Штукатурные работы",
+    "materials": [
+      {
+        "name": "Раствор цементно-известковый",
+        "unit": "м³",
+        "quantity": 0.015,
+        "coefficient": 1.1
+      },
+      {
+        "name": "Сетка штукатурная",
+        "unit": "м²",
+        "quantity": 0.1,
+        "coefficient": 1.05
+      }
+    ],
+    "labor": {
+      "hours": 1.2,
+      "category": "3 разряд"
+    },
+    "region": "moscow",
+    "validFrom": "2024-01-01"
+  },
+  {
+    "code": "ТЕР-11-01-001-01",
+    "type": "TER",
+    "name": "Укладка керамической плитки",
+    "description": "Облицовка стен керамической плиткой одноцветной на клеевой основе",
+    "unit": "м²",
+    "basePrice": 850.00,
+    "category": "Облицовочные работы",
+    "subcategory": "Плиточные работы",
+    "materials": [
+      {
+        "name": "Плитка керамическая",
+        "unit": "м²",
+        "quantity": 1.05,
+        "coefficient": 1.05
+      },
+      {
+        "name": "Клей для плитки",
+        "unit": "кг",
+        "quantity": 5.0,
+        "coefficient": 1.0
+      },
+      {
+        "name": "Затирка для швов",
+        "unit": "кг",
+        "quantity": 0.5,
+        "coefficient": 1.0
+      }
+    ],
+    "labor": {
+      "hours": 2.5,
+      "category": "4 разряд"
+    },
+    "region": "moscow",
+    "validFrom": "2024-01-01"
+  }
+]
