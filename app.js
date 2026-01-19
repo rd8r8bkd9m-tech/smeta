@@ -298,6 +298,14 @@ function renderDashboard() {
   }
 }
 
+// Helper to escape HTML and prevent XSS
+function escapeHTML(str) {
+  if (!str) return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
 // Templates Rendering
 function renderTemplates() {
   const templatesList = document.getElementById('templatesList');
@@ -310,16 +318,16 @@ function renderTemplates() {
   templatesList.innerHTML = templates
     .map(
       template => `
-        <div class="template-card" data-template-id="${template.id}">
-            <h3>${template.name}</h3>
-            <p class="template-category">${template.category}</p>
-            <p class="template-description">${template.description}</p>
+        <div class="template-card" data-template-id="${escapeHTML(template.id)}">
+            <h3>${escapeHTML(template.name)}</h3>
+            <p class="template-category">${escapeHTML(template.category)}</p>
+            <p class="template-description">${escapeHTML(template.description)}</p>
             <p class="template-items">📋 ${template.items.length} позиций</p>
-            <button class="btn btn-primary use-template-btn" data-template-id="${template.id}">
+            <button class="btn btn-primary use-template-btn" data-template-id="${escapeHTML(template.id)}">
                 ✨ Использовать шаблон
             </button>
         </div>
-    `
+      `
     )
     .join('');
 
@@ -737,13 +745,13 @@ function displayGeneratedEstimate(data) {
   let html = `
         <div class="estimate-preview">
             <div class="institute-badge">
-                <h4>🏗️ ${data.institute || 'Строительный институт SmartEstimate'}</h4>
-                <p class="accuracy-badge">✨ Точность: ${data.accuracy || '99%'}</p>
+                <h4>🏗️ ${escapeHTML(data.institute) || 'Строительный институт SmartEstimate'}</h4>
+                <p class="accuracy-badge">✨ Точность: ${escapeHTML(data.accuracy) || '99%'}</p>
             </div>
-            <h4>${data.title || 'Смета'}</h4>
-            <p><strong>Клиент:</strong> ${data.client || 'Не указан'}</p>
-            <p><strong>Проект:</strong> ${data.project || 'Не указан'}</p>
-            ${data.summary && data.summary.notes ? `<p class="note"><em>${data.summary.notes}</em></p>` : ''}
+            <h4>${escapeHTML(data.title) || 'Смета'}</h4>
+            <p><strong>Клиент:</strong> ${escapeHTML(data.client) || 'Не указан'}</p>
+            <p><strong>Проект:</strong> ${escapeHTML(data.project) || 'Не указан'}</p>
+            ${data.summary && data.summary.notes ? `<p class="note"><em>${escapeHTML(data.summary.notes)}</em></p>` : ''}
             
             <div class="section-header">📦 Материалы</div>
     `;
@@ -755,9 +763,9 @@ function displayGeneratedEstimate(data) {
       materialsTotal += itemTotal;
       html += `
                 <div class="generated-item material">
-                    <div class="item-name">${item.description}</div>
+                    <div class="item-name">${escapeHTML(item.description)}</div>
                     <div class="item-details">
-                        <span>${item.quantity} ${item.unit} × ${formatCurrency(item.price)}</span>
+                        <span>${item.quantity} ${escapeHTML(item.unit)} × ${formatCurrency(item.price)}</span>
                         <span class="item-price">${formatCurrency(itemTotal)}</span>
                     </div>
                 </div>
@@ -778,9 +786,9 @@ function displayGeneratedEstimate(data) {
       laborTotal += itemTotal;
       html += `
                 <div class="generated-item labor">
-                    <div class="item-name">${item.description}</div>
+                    <div class="item-name">${escapeHTML(item.description)}</div>
                     <div class="item-details">
-                        <span>${item.quantity} ${item.unit} × ${formatCurrency(item.price)}</span>
+                        <span>${item.quantity} ${escapeHTML(item.unit)} × ${formatCurrency(item.price)}</span>
                         <span class="item-price">${formatCurrency(itemTotal)}</span>
                     </div>
                 </div>
@@ -901,7 +909,7 @@ function renderEstimatesList() {
                        title="Выбрать для сравнения">
             </div>
             <h3>
-                ${estimate.title || 'Без названия'}
+                ${escapeHTML(estimate.title) || 'Без названия'}
                 <span class="favorite-star ${isFavorite ? 'active' : ''}" 
                       data-action="favorite" 
                       data-index="${originalIndex}"
@@ -911,12 +919,12 @@ function renderEstimatesList() {
                 ${isRecent ? '<span class="recently-viewed-badge">Недавние</span>' : ''}
             </h3>
             <div class="estimate-card-info">
-                <span>📅 ${estimate.date || 'Дата не указана'}</span>
-                <span>👤 ${estimate.client || 'Клиент не указан'}</span>
-                <span>📁 ${estimate.project || 'Проект не указан'}</span>
+                <span>📅 ${escapeHTML(estimate.date) || 'Дата не указана'}</span>
+                <span>👤 ${escapeHTML(estimate.client) || 'Клиент не указан'}</span>
+                <span>📁 ${escapeHTML(estimate.project) || 'Проект не указан'}</span>
             </div>
-            ${estimate.category ? `<div class="estimate-category">📂 ${estimate.category}</div>` : ''}
-            ${estimate.tags && estimate.tags.length > 0 ? `<div class="estimate-tags">${estimate.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>` : ''}
+            ${estimate.category ? `<div class="estimate-category">📂 ${escapeHTML(estimate.category)}</div>` : ''}
+            ${estimate.tags && estimate.tags.length > 0 ? `<div class="estimate-tags">${estimate.tags.map(tag => `<span class="tag">${escapeHTML(tag)}</span>`).join('')}</div>` : ''}
             <div class="estimate-card-total">
                 Итого: ${formatCurrency(estimate.total || 0)}
             </div>
@@ -1259,7 +1267,7 @@ function addItemRow(itemData = null) {
         <div class="drag-handle" title="Перетащите для изменения порядка">⋮⋮</div>
         <div class="form-group">
             <label>Наименование работ/материалов:</label>
-            <input type="text" class="form-control item-description" value="${item.description || ''}" placeholder="Описание позиции">
+            <input type="text" class="form-control item-description" value="${escapeHTML(item.description) || ''}" placeholder="Описание позиции">
         </div>
         <div class="form-group">
             <label>Количество:</label>
@@ -2180,25 +2188,25 @@ function renderComparison(estimatesToCompare) {
                     <thead>
                         <tr>
                             <th>Параметр</th>
-                            ${estimatesToCompare.map(est => `<th>${est.title || 'Без названия'}</th>`).join('')}
+                            ${estimatesToCompare.map(est => `<th>${escapeHTML(est.title) || 'Без названия'}</th>`).join('')}
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td><strong>Дата</strong></td>
-                            ${estimatesToCompare.map(est => `<td>${est.date || '-'}</td>`).join('')}
+                            ${estimatesToCompare.map(est => `<td>${escapeHTML(est.date) || '-'}</td>`).join('')}
                         </tr>
                         <tr>
                             <td><strong>Клиент</strong></td>
-                            ${estimatesToCompare.map(est => `<td>${est.client || '-'}</td>`).join('')}
+                            ${estimatesToCompare.map(est => `<td>${escapeHTML(est.client) || '-'}</td>`).join('')}
                         </tr>
                         <tr>
                             <td><strong>Проект</strong></td>
-                            ${estimatesToCompare.map(est => `<td>${est.project || '-'}</td>`).join('')}
+                            ${estimatesToCompare.map(est => `<td>${escapeHTML(est.project) || '-'}</td>`).join('')}
                         </tr>
                         <tr>
                             <td><strong>Категория</strong></td>
-                            ${estimatesToCompare.map(est => `<td>${est.category || '-'}</td>`).join('')}
+                            ${estimatesToCompare.map(est => `<td>${escapeHTML(est.category) || '-'}</td>`).join('')}
                         </tr>
                         <tr>
                             <td><strong>Количество позиций</strong></td>
@@ -2420,7 +2428,7 @@ function initializePWAFeatures() {
 function initializePullToRefresh() {
   const pullToRefreshEl = document.createElement('div');
   pullToRefreshEl.className = 'pull-to-refresh';
-  pullToRefreshEl.innerHTML = '↓ Потяните для обновления';
+  pullToRefreshEl.textContent = '↓ Потяните для обновления';
   document.body.insertBefore(pullToRefreshEl, document.body.firstChild);
 
   let startY = 0;
@@ -2449,9 +2457,9 @@ function initializePullToRefresh() {
       if (pullDistance > 0 && pullDistance < 100) {
         pullToRefreshEl.style.transform = `translateY(${pullDistance - 60}px)`;
         if (pullDistance > 60) {
-          pullToRefreshEl.innerHTML = '↑ Отпустите для обновления';
+          pullToRefreshEl.textContent = '↑ Отпустите для обновления';
         } else {
-          pullToRefreshEl.innerHTML = '↓ Потяните для обновления';
+          pullToRefreshEl.textContent = '↓ Потяните для обновления';
         }
       }
     },
@@ -2466,7 +2474,7 @@ function initializePullToRefresh() {
       const pullDistance = currentY - startY;
 
       if (pullDistance > 60) {
-        pullToRefreshEl.innerHTML = '⟳ Обновление...';
+        pullToRefreshEl.textContent = '⟳ Обновление...';
         pullToRefreshEl.classList.add('visible');
 
         // Refresh the data
