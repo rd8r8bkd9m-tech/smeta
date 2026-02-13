@@ -27,6 +27,25 @@ export interface SmartSuggestion {
   priority: number;
 }
 
+interface EstimateItem {
+  id?: string;
+  name: string;
+  quantity?: number;
+  unit?: string;
+  unitPrice?: number;
+  totalPrice?: number;
+  [key: string]: unknown;
+}
+
+interface HistoricalEstimate {
+  id?: string;
+  category?: string;
+  total: number;
+  items?: EstimateItem[];
+  date?: string | number | Date;
+  [key: string]: unknown;
+}
+
 interface MLModel {
   weights: {
     itemCount: number;
@@ -61,7 +80,11 @@ export class AIEngine {
   /**
    * Predict project cost based on historical data and current inputs
    */
-  public predictCost(items: any[], category: string, historicalEstimates: any[]): PredictionResult {
+  public predictCost(
+    items: EstimateItem[],
+    category: string,
+    historicalEstimates: HistoricalEstimate[]
+  ): PredictionResult {
     if (!this.model) {
       throw new Error('Model not initialized');
     }
@@ -111,7 +134,10 @@ export class AIEngine {
   /**
    * Detect anomalies in estimate data
    */
-  public detectAnomalies(estimate: any, historicalData: any[]): Anomaly[] {
+  public detectAnomalies(
+    estimate: { total: number; items: EstimateItem[] },
+    historicalData: HistoricalEstimate[]
+  ): Anomaly[] {
     const anomalies: Anomaly[] = [];
 
     // Check for unusual cost patterns
@@ -132,7 +158,7 @@ export class AIEngine {
     }
 
     // Check for duplicate items
-    const itemNames = estimate.items.map((item: any) => item.name.toLowerCase());
+    const itemNames = estimate.items.map(item => item.name.toLowerCase());
     const duplicates: number[] = [];
     itemNames.forEach((name: string, index: number) => {
       if (itemNames.indexOf(name) !== index && !duplicates.includes(index)) {
@@ -152,7 +178,7 @@ export class AIEngine {
 
     // Check for unusual item counts
     const avgItemCount =
-      historicalData.reduce((sum, e) => sum + e.items.length, 0) / historicalData.length;
+      historicalData.reduce((sum, e) => sum + (e.items?.length || 0), 0) / historicalData.length;
     if (estimate.items.length > avgItemCount * 2) {
       anomalies.push({
         type: 'item_count',
@@ -169,12 +195,15 @@ export class AIEngine {
   /**
    * Generate smart suggestions based on estimate content
    */
-  public generateSuggestions(estimate: any, historicalEstimates: any[]): SmartSuggestion[] {
+  public generateSuggestions(
+    estimate: { items: EstimateItem[]; total: number; category?: string },
+    historicalEstimates: HistoricalEstimate[]
+  ): SmartSuggestion[] {
     const suggestions: SmartSuggestion[] = [];
 
     // Suggest missing common items
     const commonItems = this.findCommonItems(historicalEstimates);
-    const currentItemNames = estimate.items.map((item: any) => item.name.toLowerCase());
+    const currentItemNames = estimate.items.map(item => item.name.toLowerCase());
 
     commonItems.forEach(commonItem => {
       if (
@@ -194,8 +223,8 @@ export class AIEngine {
 
     // Cost optimization suggestions
     const expensiveItems = estimate.items
-      .filter((item: any) => item.totalPrice > estimate.total * 0.15)
-      .sort((a: any, b: any) => b.totalPrice - a.totalPrice);
+      .filter(item => (item.totalPrice || 0) > estimate.total * 0.15)
+      .sort((a, b) => (b.totalPrice || 0) - (a.totalPrice || 0));
 
     if (expensiveItems.length > 0) {
       suggestions.push({
@@ -227,7 +256,7 @@ export class AIEngine {
   /**
    * Analyze spending patterns over time
    */
-  public analyzeSpendingPatterns(estimates: any[]): {
+  public analyzeSpendingPatterns(estimates: HistoricalEstimate[]): {
     trends: Array<{ month: string; amount: number; change: number }>;
     seasonality: { high: string[]; low: string[] };
     forecast: Array<{ month: string; predicted: number }>;
@@ -243,7 +272,24 @@ export class AIEngine {
   /**
    * Natural language query processing
    */
-  public processNaturalQuery(query: string, estimates: any[]): any[] {
+  public processNaturalQuery(
+    query: string,
+    estimates: Array<{
+      total: number;
+      date?: string;
+      client?: string;
+      title?: string;
+      project?: string;
+      [key: string]: unknown;
+    }>
+  ): Array<{
+    total: number;
+    date?: string;
+    client?: string;
+    title?: string;
+    project?: string;
+    [key: string]: unknown;
+  }> {
     const lowerQuery = query.toLowerCase();
 
     // Parse intent
@@ -256,7 +302,7 @@ export class AIEngine {
       const days = this.extractNumber(query) || 7;
       const cutoff = new Date();
       cutoff.setDate(cutoff.getDate() - days);
-      return estimates.filter(e => new Date(e.date) >= cutoff);
+      return estimates.filter(e => e.date && new Date(e.date) >= cutoff);
     }
 
     if (lowerQuery.includes('клиент')) {
@@ -267,7 +313,7 @@ export class AIEngine {
     // Default: full text search
     return estimates.filter(
       e =>
-        e.title.toLowerCase().includes(lowerQuery) ||
+        e.title?.toLowerCase().includes(lowerQuery) ||
         e.client?.toLowerCase().includes(lowerQuery) ||
         e.project?.toLowerCase().includes(lowerQuery)
     );
@@ -284,8 +330,8 @@ export class AIEngine {
   private generateRecommendations(
     predicted: number,
     actual: number,
-    items: any[],
-    historical: any[]
+    items: EstimateItem[],
+    historical: HistoricalEstimate[]
   ): string[] {
     const recommendations: string[] = [];
 
@@ -308,13 +354,15 @@ export class AIEngine {
     return recommendations;
   }
 
-  private findCommonItems(estimates: any[]): Array<{ name: string; frequency: number }> {
+  private findCommonItems(
+    estimates: HistoricalEstimate[]
+  ): Array<{ name: string; frequency: number }> {
     const itemCounts = new Map<string, number>();
     const totalEstimates = estimates.length;
 
     estimates.forEach(estimate => {
       const uniqueNames = new Set<string>(
-        estimate.items.map((item: any) => item.name.toLowerCase())
+        (estimate.items || []).map(item => item.name.toLowerCase())
       );
       uniqueNames.forEach((name: string) => {
         itemCounts.set(name, (itemCounts.get(name) || 0) + 1);
@@ -369,14 +417,16 @@ export class AIEngine {
     return matrix[str2.length][str1.length];
   }
 
-  private suggestCategory(items: any[], historical: any[]): string | null {
-    const keywords = items.map((item: any) => item.name.toLowerCase()).join(' ');
+  private suggestCategory(items: EstimateItem[], historical: HistoricalEstimate[]): string | null {
+    const keywords = items.map(item => item.name.toLowerCase()).join(' ');
 
     const categoryScores = new Map<string, number>();
     historical.forEach(estimate => {
       if (!estimate.category) return;
 
-      const estimateKeywords = estimate.items.map((item: any) => item.name.toLowerCase()).join(' ');
+      const estimateKeywords = (estimate.items || [])
+        .map(item => item.name.toLowerCase())
+        .join(' ');
 
       const similarity = this.textSimilarity(keywords, estimateKeywords);
       categoryScores.set(
@@ -402,10 +452,11 @@ export class AIEngine {
     return union.size > 0 ? intersection.size / union.size : 0;
   }
 
-  private groupByMonth(estimates: any[]): Map<string, number> {
+  private groupByMonth(estimates: HistoricalEstimate[]): Map<string, number> {
     const monthlyData = new Map<string, number>();
 
     estimates.forEach(estimate => {
+      if (!estimate.date) return;
       const date = new Date(estimate.date);
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       monthlyData.set(monthKey, (monthlyData.get(monthKey) || 0) + estimate.total);

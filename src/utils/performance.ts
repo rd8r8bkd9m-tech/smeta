@@ -36,6 +36,7 @@ export const requestIdleCallback =
   };
 
 // Memoization decorator
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function memoize<T extends (...args: any[]) => any>(fn: T): T {
   const cache = new Map();
 
@@ -51,18 +52,18 @@ export function memoize<T extends (...args: any[]) => any>(fn: T): T {
 }
 
 // Virtual scrolling for large lists
-export class VirtualScroll {
+export class VirtualScroll<T = unknown> {
   private container: HTMLElement;
-  private items: any[];
+  private items: T[];
   private itemHeight: number;
   private visibleItems: number;
-  private renderItem: (item: any, index: number) => HTMLElement;
+  private renderItem: (item: T, index: number) => HTMLElement;
 
   constructor(
     container: HTMLElement,
-    items: any[],
+    items: T[],
     itemHeight: number,
-    renderItem: (item: any, index: number) => HTMLElement
+    renderItem: (item: T, index: number) => HTMLElement
   ) {
     this.container = container;
     this.items = items;
@@ -105,7 +106,7 @@ export class VirtualScroll {
     }
   }
 
-  update(items: any[]): void {
+  update(items: T[]): void {
     this.items = items;
     const totalHeight = this.items.length * this.itemHeight;
     const spacer = this.container.querySelector('div');
@@ -117,6 +118,7 @@ export class VirtualScroll {
 }
 
 // Web Worker for heavy computations
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function createWorker(fn: (...args: any[]) => void): Worker {
   const blob = new Blob([`self.onmessage = ${fn.toString()}`], {
     type: 'application/javascript',
