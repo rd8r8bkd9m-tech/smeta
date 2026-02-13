@@ -11,7 +11,7 @@ export interface AuditLogEntry {
   action: string;
   resource: string;
   resourceId: string;
-  changes?: { field: string; oldValue: any; newValue: any }[];
+  changes?: { field: string; oldValue: unknown; newValue: unknown }[];
   ipAddress?: string;
   userAgent?: string;
   success: boolean;
@@ -108,7 +108,7 @@ export class EnterpriseManager {
     action: string,
     resource: string,
     resourceId: string,
-    changes?: any[],
+    changes?: Array<{ field: string; oldValue: unknown; newValue: unknown }>,
     success: boolean = true,
     errorMessage?: string
   ): Promise<void> {

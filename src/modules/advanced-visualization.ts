@@ -3,10 +3,17 @@
  * Interactive dashboards with D3.js-like capabilities using Canvas
  */
 
+export interface ChartMargin {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}
+
 export interface ChartOptions {
   width?: number;
   height?: number;
-  margin?: { top: number; right: number; bottom: number; left: number };
+  margin?: ChartMargin;
   colors?: string[];
   animated?: boolean;
   interactive?: boolean;
@@ -17,7 +24,7 @@ export interface DataPoint {
   label: string;
   value: number;
   color?: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 export class AdvancedVisualization {
@@ -481,7 +488,7 @@ export class AdvancedVisualization {
 
   private drawLabels(
     labels: { x: string[]; y: string[] },
-    margin: any,
+    margin: ChartMargin,
     cellWidth: number,
     cellHeight: number
   ): void {
@@ -505,7 +512,7 @@ export class AdvancedVisualization {
     });
   }
 
-  private drawAxes(width: number, height: number, margin: any): void {
+  private drawAxes(width: number, height: number, margin: ChartMargin): void {
     this.ctx.strokeStyle = '#000';
     this.ctx.lineWidth = 2;
     this.ctx.beginPath();

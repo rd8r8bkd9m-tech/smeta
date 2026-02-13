@@ -5,9 +5,9 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { aiEngine } from '../modules/ai-engine';
-import { createCollaborationManager } from '../modules/collaboration';
+import { createCollaborationManager, type CollaborationManager } from '../modules/collaboration';
 import { offlineSyncManager } from '../modules/offline-sync';
-import { createVisualization } from '../modules/advanced-visualization';
+import { createVisualization, type AdvancedVisualization } from '../modules/advanced-visualization';
 import { enterpriseManager } from '../modules/enterprise';
 
 describe('AI Engine', () => {
@@ -17,8 +17,22 @@ describe('AI Engine', () => {
       title: 'Office Renovation',
       category: 'Commercial',
       items: [
-        { name: 'Paint', totalPrice: 5000 },
-        { name: 'Flooring', totalPrice: 10000 },
+        {
+          name: 'Paint',
+          description: 'Paint',
+          quantity: 100,
+          unit: 'sqm',
+          price: 50,
+          totalPrice: 5000,
+        },
+        {
+          name: 'Flooring',
+          description: 'Flooring',
+          quantity: 100,
+          unit: 'sqm',
+          price: 100,
+          totalPrice: 10000,
+        },
       ],
       total: 15000,
       date: '2025-01-15',
@@ -28,8 +42,22 @@ describe('AI Engine', () => {
       title: 'Warehouse Build',
       category: 'Commercial',
       items: [
-        { name: 'Steel', totalPrice: 50000 },
-        { name: 'Concrete', totalPrice: 30000 },
+        {
+          name: 'Steel',
+          description: 'Steel',
+          quantity: 1000,
+          unit: 'kg',
+          price: 50,
+          totalPrice: 50000,
+        },
+        {
+          name: 'Concrete',
+          description: 'Concrete',
+          quantity: 300,
+          unit: 'cubic m',
+          price: 100,
+          totalPrice: 30000,
+        },
       ],
       total: 80000,
       date: '2025-02-01',
@@ -38,8 +66,22 @@ describe('AI Engine', () => {
 
   it('should predict costs based on historical data', () => {
     const items = [
-      { name: 'Drywall', totalPrice: 8000 },
-      { name: 'Paint', totalPrice: 4000 },
+      {
+        name: 'Drywall',
+        description: 'Drywall',
+        quantity: 100,
+        unit: 'sqm',
+        price: 80,
+        totalPrice: 8000,
+      },
+      {
+        name: 'Paint',
+        description: 'Paint',
+        quantity: 80,
+        unit: 'sqm',
+        price: 50,
+        totalPrice: 4000,
+      },
     ];
 
     const prediction = aiEngine.predictCost(items, 'Commercial', mockEstimates);
@@ -55,8 +97,18 @@ describe('AI Engine', () => {
     const suspiciousEstimate = {
       id: '3',
       title: 'Small Office',
+      date: '2025-03-01',
       total: 500000, // Unusually high
-      items: [{ name: 'Paint', totalPrice: 500000 }],
+      items: [
+        {
+          name: 'Paint',
+          description: 'Paint',
+          quantity: 10000,
+          unit: 'sqm',
+          price: 50,
+          totalPrice: 500000,
+        },
+      ],
       category: 'Commercial',
     };
 
@@ -74,8 +126,18 @@ describe('AI Engine', () => {
     const estimate = {
       id: '4',
       title: 'Office Renovation',
+      date: '2025-04-01',
       category: '',
-      items: [{ name: 'Paint', totalPrice: 5000 }],
+      items: [
+        {
+          name: 'Paint',
+          description: 'Paint',
+          quantity: 100,
+          unit: 'sqm',
+          price: 50,
+          totalPrice: 5000,
+        },
+      ],
       total: 5000,
     };
 
@@ -110,7 +172,7 @@ describe('AI Engine', () => {
 });
 
 describe('Collaboration Manager', () => {
-  let collab: any;
+  let collab: CollaborationManager;
 
   beforeEach(() => {
     collab = createCollaborationManager('test-user-123');
@@ -161,6 +223,7 @@ describe('Offline Sync Manager', () => {
     const estimate = {
       id: 'test-1',
       title: 'Test Estimate',
+      date: '2025-05-01',
       items: [],
       total: 0,
     };
@@ -169,7 +232,7 @@ describe('Offline Sync Manager', () => {
     const retrieved = await offlineSyncManager.getEstimate('test-1');
 
     expect(retrieved).toBeDefined();
-    expect(retrieved.title).toBe('Test Estimate');
+    expect(retrieved?.title).toBe('Test Estimate');
   });
 
   it('should get all estimates', async () => {
@@ -197,7 +260,7 @@ describe('Offline Sync Manager', () => {
 
 describe('Advanced Visualization', () => {
   let canvas: HTMLCanvasElement;
-  let viz: any;
+  let viz: AdvancedVisualization;
 
   beforeEach(() => {
     canvas = document.createElement('canvas');
@@ -339,8 +402,22 @@ describe('Enterprise Manager', () => {
 describe('Integration Tests', () => {
   it('should integrate AI with analytics', () => {
     const estimates = [
-      { id: '1', total: 10000, items: [], date: '2025-01-01', category: 'A' },
-      { id: '2', total: 20000, items: [], date: '2025-02-01', category: 'B' },
+      {
+        id: '1',
+        title: 'Estimate 1',
+        total: 10000,
+        items: [],
+        date: '2025-01-01',
+        category: 'A',
+      },
+      {
+        id: '2',
+        title: 'Estimate 2',
+        total: 20000,
+        items: [],
+        date: '2025-02-01',
+        category: 'B',
+      },
     ];
 
     const analysis = aiEngine.analyzeSpendingPatterns(estimates);
@@ -351,6 +428,7 @@ describe('Integration Tests', () => {
     const estimate = {
       id: 'collab-1',
       title: 'Collaborative Estimate',
+      date: '2025-06-01',
       items: [],
       total: 0,
     };
